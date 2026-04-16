@@ -1,0 +1,13 @@
+{
+  "name": "lms",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install",
+    "start": "npm --prefix server start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
