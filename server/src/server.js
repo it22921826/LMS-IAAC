@@ -5,7 +5,12 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 
 import { notFoundHandler, errorHandler } from './middleware/errorHandlers.js';
+import { requireAuth } from './middleware/auth.js';
+import { requireAdmin } from './middleware/adminAuth.js';
 import { healthRouter } from './routes/health.routes.js';
+import { authRouter } from './routes/auth.routes.js';
+import { adminAuthRouter } from './routes/adminAuth.routes.js';
+import { adminRouter } from './routes/admin.routes.js';
 import { lmsRouter } from './routes/lms.routes.js';
 
 export function createServer() {
@@ -47,7 +52,13 @@ export function createServer() {
   });
 
   app.use('/api/health', healthRouter);
-  app.use('/api', lmsRouter);
+
+  app.use('/api/auth', authRouter);
+
+  app.use('/api/admin/auth', adminAuthRouter);
+  app.use('/api/admin', requireAdmin, adminRouter);
+
+  app.use('/api', requireAuth, lmsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

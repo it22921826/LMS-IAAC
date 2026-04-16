@@ -10,6 +10,55 @@ export const DEFAULT_LMS_DATA = {
 
   dashboard: {
     student: STUDENT,
+
+    // Dashboard v2 (primary)
+    progress: {
+      courseId: 'ppl',
+      courseCode: 'PPL-101',
+      courseTitle: 'Private Pilot License',
+      progressPct: 75,
+      completedUnits: 9,
+      totalUnits: 12,
+      nextUp: 'Solo Navigation Briefing',
+      eta: '2 weeks',
+    },
+    notifications: [
+      {
+        id: 'n-1',
+        type: 'warning',
+        title: 'Updated Student Policy: Flight Line Safety',
+        message: 'Please review updated guidance before your next on-campus practical session.',
+        date: 'Apr 09, 2026',
+        action: { label: 'Open policy', href: '/policy' },
+      },
+      {
+        id: 'n-2',
+        type: 'info',
+        title: 'Knowledge Hub: New ICAO Chart Pack Released',
+        message: 'The latest chart pack is live with updated airspace and approach references.',
+        date: 'Apr 06, 2026',
+        action: { label: 'Go to Hub', href: '/knowledge-hub' },
+      },
+      {
+        id: 'n-3',
+        type: 'success',
+        title: 'New full-flight simulator available',
+        message: 'Book advanced training sessions for enhanced procedural practice.',
+        date: 'Apr 12, 2026',
+      },
+    ],
+    activeMaterial: {
+      id: 'mat-2',
+      name: 'Meteorology Lecture',
+      type: 'Video',
+      courseTitle: 'Aviation Meteorology',
+      progressPct: 30,
+      lastSeen: 'Apr 15, 2026',
+      moduleTitle: 'Weather fronts & METAR decoding',
+      resumeHref: '/materials',
+    },
+
+    // Legacy fields (kept for compatibility / migration)
     materials: [
       { id: 'm1', name: 'Boeing 737 Flight Manual v3.2', type: 'PDF' },
       { id: 'm2', name: 'Meteorology Lecture', type: 'Video' },

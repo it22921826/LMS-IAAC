@@ -44,9 +44,9 @@ export default function DashboardPage() {
   return (
     <DashboardMain
       student={student || data.student}
-      materials={data.materials}
-      upcomingClasses={data.upcomingClasses}
-      news={data.news}
+      progress={data.progress}
+      notifications={data.notifications}
+      activeMaterial={data.activeMaterial}
     />
   );
 }

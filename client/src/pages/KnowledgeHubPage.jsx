@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { apiGet } from '../api/http.js';
 import CardShell from '../components/CardShell.jsx';
 
+function safeHref(href) {
+  if (typeof href !== 'string') return '#';
+  const v = href.trim();
+  if (!v) return '#';
+  if (v.startsWith('/') || v.startsWith('#')) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  return '#';
+}
+
 export default function KnowledgeHubPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -44,7 +53,7 @@ export default function KnowledgeHubPage() {
         {data.items.map((item) => (
           <a
             key={item.id}
-            href={item.href || '#'}
+            href={safeHref(item.href)}
             className="block rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 shadow-sm hover:bg-white"
           >
             {item.title}

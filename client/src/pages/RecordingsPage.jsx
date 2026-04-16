@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { apiGet } from '../api/http.js';
 import CardShell from '../components/CardShell.jsx';
 
+function safeHref(href) {
+  if (typeof href !== 'string') return '#';
+  const v = href.trim();
+  if (!v) return '#';
+  if (v.startsWith('/') || v.startsWith('#')) return v;
+  if (/^https?:\/\//i.test(v)) return v;
+  return '#';
+}
+
 export default function RecordingsPage() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -48,7 +57,7 @@ export default function RecordingsPage() {
               <div className="text-xs text-slate-500">{r.date}</div>
             </div>
             <a
-              href={r.href || '#'}
+              href={safeHref(r.href)}
               className="flex-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-white"
             >
               Open

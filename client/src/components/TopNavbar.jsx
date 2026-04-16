@@ -5,8 +5,7 @@ import {
   Calendar, 
   Video, 
   Bell, 
-  LogOut, 
-  ChevronDown 
+  LogOut 
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
@@ -18,7 +17,7 @@ const NAV_LINKS = [
   { label: 'Recordings', icon: Video, to: '/recordings' },
 ];
 
-export default function TopNavbar({ student }) {
+export default function TopNavbar({ student, onLogout }) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
       <div className="mx-auto max-w-full px-6">
@@ -65,13 +64,17 @@ export default function TopNavbar({ student }) {
             <div className="flex items-center gap-3 border-l border-slate-200 pl-4 py-1">
               <div className="text-right hidden md:block">
                 <p className="text-xs font-bold text-slate-900">{student?.name || 'Dilan Augustine'}</p>
-                <button className="text-[10px] text-slate-400 hover:text-red-500 font-semibold flex items-center gap-1 ml-auto">
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="text-[10px] text-slate-400 hover:text-red-500 font-semibold flex items-center gap-1 ml-auto"
+                >
                   <LogOut className="h-3 w-3" /> Log Out
                 </button>
               </div>
               <div className="h-9 w-9 rounded-full border-2 border-sky-100 p-0.5">
                 <img 
-                  src={student?.avatar || "https://ui-avatars.com/api/?name=Dilan+Augustine&background=0369a1&color=fff"} 
+                  src={student?.avatarDataUri || student?.avatar || "https://ui-avatars.com/api/?name=Dilan+Augustine&background=0369a1&color=fff"} 
                   className="h-full w-full rounded-full object-cover"
                   alt="Profile"
                 />

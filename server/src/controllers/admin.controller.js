@@ -1,0 +1,185 @@
+import bcrypt from 'bcryptjs';
+import { AppData } from '../models/AppData.js';
+import { Student } from '../models/Student.js';
+import { Admin } from '../models/Admin.js';
+
+function safeTrim(v) {
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isSafeKey(key) {
+  return typeof key === 'string' && /^[a-z0-9][a-z0-9._-]{0,63}$/i.test(key);
+}
+
+function toStudentListItem(student) {
+  return {
+    id: String(student._id),
+    fullName: student.fullName,
+    email: student.email,
+    studentId: student.studentId,
+    course: student.course,
+    phoneNumber: student.phoneNumber,
+    whatsappNumber: student.whatsappNumber,
+    createdAt: student.createdAt,
+  };
+}
+
+export async function getAdminMetrics(req, res, next) {
+  try {
+    const [students, admins] = await Promise.all([
+      Student.countDocuments(),
+      Admin.countDocuments(),
+    ]);
+
+    const programmesDoc = await AppData.findOne({ key: 'programmes' }).lean();
+    const programmes = Array.isArray(programmesDoc?.payload?.programmes)
+      ? programmesDoc.payload.programmes.length
+      : 0;
+
+    res.json({
+      students,
+      users: admins,
+      faculties: 0,
+      programmes,
+      totalIncome: 0,
+      awaitingPayments: 0,
+      pendingApproval: 0,
+      rejectedPayments: 0,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function listStudents(req, res, next) {
+  try {
+    const limit = Math.min(200, Math.max(1, Number(req.query.limit || 50)));
+    const q = safeTrim(req.query.q);
+
+    const filter = q
+      ? {
+          $or: [
+            { fullName: { $regex: q, $options: 'i' } },
+            { email: { $regex: q, $options: 'i' } },
+            { studentId: { $regex: q, $options: 'i' } },
+          ],
+        }
+      : {};
+
+    const items = await Student.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    res.json({ students: items.map(toStudentListItem) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function createStudentByAdmin(req, res, next) {
+  try {
+    const {
+      fullName,
+      email,
+      studentId,
+      nic,
+      course,
+      whatsappNumber,
+      phoneNumber,
+      address,
+      guardianName,
+      guardianPhoneNumber,
+      password,
+    } = req.body || {};
+
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!safeTrim(fullName)) return res.status(400).json({ message: 'Name is required' });
+    if (!safeTrim(studentId)) return res.status(400).json({ message: 'Student ID is required' });
+    if (!isValidEmail(normalizedEmail)) return res.status(400).json({ message: 'Valid email is required' });
+    if (typeof password !== 'string' || password.trim().length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+
+    const existing = await Student.findOne({
+      $or: [{ email: normalizedEmail }, { studentId: safeTrim(studentId) }],
+    }).lean();
+
+    if (existing) return res.status(409).json({ message: 'Email or Student ID already exists' });
+
+    const passwordHash = await bcrypt.hash(password.trim(), 12);
+
+    const created = await Student.create({
+      fullName: safeTrim(fullName),
+      email: normalizedEmail,
+      studentId: safeTrim(studentId),
+      nic: safeTrim(nic),
+      course: safeTrim(course),
+      whatsappNumber: safeTrim(whatsappNumber),
+      phoneNumber: safeTrim(phoneNumber),
+      address: safeTrim(address),
+      guardianName: safeTrim(guardianName),
+      guardianPhoneNumber: safeTrim(guardianPhoneNumber),
+      passwordHash,
+    });
+
+    res.status(201).json({ student: toStudentListItem(created) });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({ message: 'Email or Student ID already exists' });
+    }
+    next(err);
+  }
+}
+
+export async function listAppDataKeys(req, res, next) {
+  try {
+    const keys = await AppData.find({}, { key: 1, _id: 0 }).sort({ key: 1 }).lean();
+    res.json({ keys: keys.map((d) => d.key) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getAppDataByKey(req, res, next) {
+  try {
+    const { key } = req.params;
+    if (!isSafeKey(key)) return res.status(400).json({ message: 'Invalid key' });
+
+    const doc = await AppData.findOne({ key }).lean();
+    if (!doc) return res.status(404).json({ message: 'Not found' });
+
+    res.json({ key: doc.key, payload: doc.payload, updatedAt: doc.updatedAt });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function upsertAppDataByKey(req, res, next) {
+  try {
+    const { key } = req.params;
+    if (!isSafeKey(key)) return res.status(400).json({ message: 'Invalid key' });
+
+    const { payload } = req.body || {};
+    if (payload === undefined) return res.status(400).json({ message: 'payload is required' });
+
+    const updated = await AppData.findOneAndUpdate(
+      { key },
+      { $set: { key, payload } },
+      { upsert: true, new: true }
+    ).lean();
+
+    res.json({ key: updated.key, payload: updated.payload, updatedAt: updated.updatedAt });
+  } catch (err) {
+    next(err);
+  }
+}

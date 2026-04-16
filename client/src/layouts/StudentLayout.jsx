@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import TopNavbar from '../components/TopNavbar.jsx';
-import { apiGet } from '../api/http.js';
+import { apiGet, apiPost } from '../api/http.js';
 
 export default function StudentLayout() {
+  const navigate = useNavigate();
   const [isDark, setIsDark] = useState(false);
   const [student, setStudent] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('iaac-theme');
@@ -20,18 +22,41 @@ export default function StudentLayout() {
   useEffect(() => {
     let cancelled = false;
 
-    apiGet('/api/student/me')
+    apiGet('/api/auth/me')
       .then((data) => {
         if (!cancelled) setStudent(data);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!cancelled) setStudent(null);
+        if (err?.status === 401) {
+          navigate('/login', { replace: true });
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setAuthChecked(true);
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [navigate]);
+
+  const onLogout = () => {
+    apiPost('/api/auth/logout')
+      .catch(() => {})
+      .finally(() => {
+        setStudent(null);
+        navigate('/login', { replace: true });
+      });
+  };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6 text-sm text-slate-700">
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
@@ -39,6 +64,7 @@ export default function StudentLayout() {
         student={student}
         isDark={isDark}
         onToggleTheme={() => setIsDark((v) => !v)}
+        onLogout={onLogout}
       />
 
       <main className="mx-auto w-full p-5 md:p-6">

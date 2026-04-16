@@ -2,7 +2,9 @@ import { createServer } from './server.js';
 import { connectDb } from './config/db.js';
 import dotenv from 'dotenv';
 
+import bcrypt from 'bcryptjs';
 import { DEFAULT_LMS_DATA } from './data/defaultLmsData.js';
+import { Admin } from './models/Admin.js';
 import { seedDefaultAppData } from './services/appData.service.js';
 
 dotenv.config();
@@ -12,6 +14,20 @@ const initialPort = Number(process.env.PORT || 5000);
 const dbConnected = await connectDb();
 if (dbConnected) {
   await seedDefaultAppData(DEFAULT_LMS_DATA);
+
+  const bootstrapEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const bootstrapPassword = (process.env.ADMIN_PASSWORD || '').trim();
+  const bootstrapName = (process.env.ADMIN_NAME || 'Super Admin').trim();
+
+  if (bootstrapEmail && bootstrapPassword) {
+    const existing = await Admin.findOne({ email: bootstrapEmail }).lean();
+    if (!existing) {
+      const passwordHash = await bcrypt.hash(bootstrapPassword, 12);
+      await Admin.create({ name: bootstrapName, email: bootstrapEmail, passwordHash });
+      // eslint-disable-next-line no-console
+      console.log(`Bootstrapped admin: ${bootstrapEmail}`);
+    }
+  }
 }
 
 const app = createServer();
