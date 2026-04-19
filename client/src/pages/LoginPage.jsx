@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiPost } from '../api/http.js';
+import { Plane } from 'lucide-react'; // Example: Add an icon
+import L1 from '../image/L1.jpeg';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -13,72 +15,82 @@ export default function LoginPage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-
     apiPost('/api/auth/login', { identifier, password })
-      .then(() => {
-        navigate('/dashboard', { replace: true });
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setSubmitting(false);
-      });
+      .then(() => navigate('/dashboard', { replace: true }))
+      .catch((err) => setError(err))
+      .finally(() => setSubmitting(false));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-lg">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-slate-900">Student Login</h1>
-          <p className="mt-1 text-sm text-slate-600">Use your email or Student ID.</p>
+    <div className="min-h-screen flex bg-white">
+      {/* LEFT SIDE: Visual Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#003580] relative items-center justify-center overflow-hidden">
+        {/* Abstract Background Elements */}
+        <img
+          src={L1}
+          alt="IAAC"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+        <div className="relative z-10 text-center px-12">
+          <Plane className="w-16 h-16 text-white mx-auto mb-6" />
+          <h1 className="text-4xl font-bold text-white mb-4">IAAC Student Portal</h1>
+          <p className="text-sky-100 text-lg">Your journey to the skies starts here. Secure access to your flight training and materials.</p>
+        </div>
+      </div>
 
-          {error ? (
-            <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              {error.message || 'Login failed.'}
+      {/* RIGHT SIDE: The Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16">
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-slate-900">Welcome Back</h2>
+            <p className="text-slate-500 mt-2">Enter your credentials to access your flight deck.</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {error.message || 'Invalid credentials. Please try again.'}
             </div>
-          ) : null}
+          )}
 
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+          <form className="space-y-6" onSubmit={onSubmit}>
             <div>
-              <label className="text-sm font-semibold text-slate-700">Email or Student ID</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Email or Student ID</label>
               <input
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="username"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-sky-600 focus:ring-2 focus:ring-sky-100 outline-none transition-all"
+                placeholder="name@iaac.com"
                 required
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-slate-700">Password</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
               <input
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="current-password"
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-sky-600 focus:ring-2 focus:ring-sky-100 outline-none transition-all"
+                placeholder="••••••••"
                 required
-                minLength={8}
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:opacity-60"
+              className="w-full bg-[#003580] text-white py-3 rounded-xl font-bold hover:bg-blue-900 transition-all disabled:opacity-70 shadow-lg shadow-blue-900/20"
             >
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting ? 'Authenticating...' : 'Sign In to Flight Deck'}
             </button>
-
-            <div className="text-center text-sm text-slate-600">
-              No account?{' '}
-              <Link to="/register" className="font-semibold text-sky-700 hover:text-sky-800">
-                Create one
-              </Link>
-            </div>
           </form>
+
+          <p className="mt-8 text-center text-sm text-slate-500">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-semibold text-[#003580] hover:underline">
+              Request access
+            </Link>
+          </p>
         </div>
       </div>
     </div>
