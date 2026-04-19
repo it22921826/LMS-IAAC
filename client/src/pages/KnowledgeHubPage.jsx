@@ -47,19 +47,25 @@ export default function KnowledgeHubPage() {
     );
   }
 
+  const items = Array.isArray(data?.items) ? data.items : [];
+
   return (
     <CardShell title="Knowledge Hub">
-      <div className="space-y-3">
-        {data.items.map((item) => (
-          <a
-            key={item.id}
-            href={safeHref(item.href)}
-            className="block rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 shadow-sm hover:bg-white"
-          >
-            {item.title}
-          </a>
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <div className="text-sm text-slate-600">No resources yet.</div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item, idx) => (
+            <a
+              key={item.id || idx}
+              href={safeHref(item.href)}
+              className="block rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-800 shadow-sm hover:bg-white"
+            >
+              {item.title || '—'}
+            </a>
+          ))}
+        </div>
+      )}
     </CardShell>
   );
 }

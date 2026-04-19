@@ -47,24 +47,33 @@ export default function RecordingsPage() {
     );
   }
 
+  const recordings = Array.isArray(data?.recordings) ? data.recordings : [];
+
   return (
     <CardShell title="Recordings">
-      <ul className="space-y-3 text-sm">
-        {data.recordings.map((r) => (
-          <li key={r.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-4">
-            <div className="min-w-0">
-              <div className="truncate font-semibold text-slate-900">{r.title}</div>
-              <div className="text-xs text-slate-500">{r.date}</div>
-            </div>
-            <a
-              href={safeHref(r.href)}
-              className="flex-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-white"
+      {recordings.length === 0 ? (
+        <div className="text-sm text-slate-600">No recordings yet.</div>
+      ) : (
+        <ul className="space-y-3 text-sm">
+          {recordings.map((r, idx) => (
+            <li
+              key={r.id || idx}
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-4"
             >
-              Open
-            </a>
-          </li>
-        ))}
-      </ul>
+              <div className="min-w-0">
+                <div className="truncate font-semibold text-slate-900">{r.title || '—'}</div>
+                <div className="text-xs text-slate-500">{r.date || ''}</div>
+              </div>
+              <a
+                href={safeHref(r.href)}
+                className="flex-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm hover:bg-white"
+              >
+                Open
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </CardShell>
   );
 }

@@ -47,29 +47,37 @@ export default function ProfilePage() {
     );
   }
 
+  const profile = data && typeof data.profile === 'object' ? data.profile : {};
+
+  const safeRow = (value) => {
+    if (typeof value === 'string') return value.trim() ? value : '—';
+    if (value === null || value === undefined) return '—';
+    return String(value);
+  };
+
   return (
     <CardShell title="Profile">
       <div className="flex items-center gap-4">
-        {data.profile.avatarDataUri ? (
+        {profile.avatarDataUri ? (
           <img
-            src={data.profile.avatarDataUri}
-            alt={data.profile.name}
+            src={profile.avatarDataUri}
+            alt={profile.name || 'Profile'}
             className="h-14 w-14 rounded-full border border-slate-200 object-cover"
           />
         ) : (
           <div className="h-14 w-14 rounded-full border border-slate-200 bg-slate-100" aria-hidden="true" />
         )}
         <div className="min-w-0">
-          <div className="truncate text-base font-semibold text-slate-900">{data.profile.name}</div>
-          <div className="text-sm text-slate-600">{data.profile.program}</div>
+          <div className="truncate text-base font-semibold text-slate-900">{profile.name || '—'}</div>
+          <div className="text-sm text-slate-600">{profile.program || ''}</div>
         </div>
       </div>
 
       <div className="mt-5 rounded-lg border border-slate-200 px-4">
-        <Row label="Student ID" value={data.profile.studentId} />
-        <Row label="Email" value={data.profile.email} />
-        <Row label="Phone" value={data.profile.phone} />
-        <Row label="Cohort" value={data.profile.cohort} />
+        <Row label="Student ID" value={safeRow(profile.studentId)} />
+        <Row label="Email" value={safeRow(profile.email)} />
+        <Row label="Phone" value={safeRow(profile.phone)} />
+        <Row label="Cohort" value={safeRow(profile.cohort)} />
       </div>
     </CardShell>
   );

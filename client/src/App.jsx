@@ -3,7 +3,9 @@ import AdminLayout from './admin/layouts/AdminLayout.jsx';
 import AdminContentPage from './admin/pages/AdminContentPage.jsx';
 import AdminDashboardPage from './admin/pages/AdminDashboardPage.jsx';
 import AdminLoginPage from './admin/pages/AdminLoginPage.jsx';
+import AdminPaymentsPage from './admin/pages/AdminPaymentsPage.jsx';
 import AdminStudentsPage from './admin/pages/AdminStudentsPage.jsx';
+import AdminUsersPage from './admin/pages/AdminUsersPage.jsx';
 import StudentLayout from './layouts/StudentLayout.jsx';
 import CoursesPage from './pages/CoursesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -26,8 +28,10 @@ export default function App() {
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
           <Route path="students" element={<AdminStudentsPage />} />
           <Route path="content" element={<AdminContentPage />} />
+          <Route path="payments" element={<AdminPaymentsPage />} />
         </Route>
 
         {/* Student */}

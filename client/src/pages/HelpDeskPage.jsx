@@ -38,36 +38,43 @@ export default function HelpDeskPage() {
     );
   }
 
+  const contact = data && typeof data.contact === 'object' ? data.contact : {};
+  const tickets = Array.isArray(data?.tickets) ? data.tickets : [];
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <CardShell title="Help Desk">
         <div className="space-y-2 text-sm text-slate-700">
           <div>
-            <span className="font-semibold">Email:</span> {data.contact.email}
+            <span className="font-semibold">Email:</span> {contact.email || '—'}
           </div>
           <div>
-            <span className="font-semibold">Phone:</span> {data.contact.phone}
+            <span className="font-semibold">Phone:</span> {contact.phone || '—'}
           </div>
           <div>
-            <span className="font-semibold">Hours:</span> {data.contact.hours}
+            <span className="font-semibold">Hours:</span> {contact.hours || '—'}
           </div>
         </div>
       </CardShell>
 
       <CardShell title="Recent Tickets">
-        <ul className="space-y-3 text-sm">
-          {data.tickets.map((t) => (
-            <li key={t.id} className="rounded-lg border border-slate-200 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-semibold text-slate-900">{t.subject}</div>
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
-                  {t.status}
-                </span>
-              </div>
-              <div className="mt-1 text-xs text-slate-500">{t.date}</div>
-            </li>
-          ))}
-        </ul>
+        {tickets.length === 0 ? (
+          <div className="text-sm text-slate-600">No tickets yet.</div>
+        ) : (
+          <ul className="space-y-3 text-sm">
+            {tickets.map((t, idx) => (
+              <li key={t.id || idx} className="rounded-lg border border-slate-200 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="font-semibold text-slate-900">{t.subject || '—'}</div>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                    {t.status || '—'}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">{t.date || ''}</div>
+              </li>
+            ))}
+          </ul>
+        )}
       </CardShell>
     </div>
   );

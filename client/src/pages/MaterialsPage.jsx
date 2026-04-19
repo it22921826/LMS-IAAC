@@ -38,19 +38,28 @@ export default function MaterialsPage() {
     );
   }
 
+  const materials = Array.isArray(data?.materials) ? data.materials : [];
+
   return (
     <CardShell title="Study Materials">
-      <ul className="space-y-3 text-sm">
-        {data.materials.map((m) => (
-          <li key={m.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3">
-            <div className="min-w-0">
-              <div className="truncate font-medium text-slate-900">{m.name}</div>
-              <div className="text-xs text-slate-500">{m.type}</div>
-            </div>
-            <div className="text-xs font-semibold text-slate-700">{m.visibility}</div>
-          </li>
-        ))}
-      </ul>
+      {materials.length === 0 ? (
+        <div className="text-sm text-slate-600">No materials yet.</div>
+      ) : (
+        <ul className="space-y-3 text-sm">
+          {materials.map((m, idx) => (
+            <li
+              key={m.id || idx}
+              className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3"
+            >
+              <div className="min-w-0">
+                <div className="truncate font-medium text-slate-900">{m.name || '—'}</div>
+                <div className="text-xs text-slate-500">{m.type || ''}</div>
+              </div>
+              <div className="text-xs font-semibold text-slate-700">{m.visibility || ''}</div>
+            </li>
+          ))}
+        </ul>
+      )}
     </CardShell>
   );
 }

@@ -1,5 +1,4 @@
 import { DEFAULT_LMS_DATA } from '../data/defaultLmsData.js';
-import { AppData } from '../models/AppData.js';
 import { Student } from '../models/Student.js';
 import { getOrCreateAppDataPayload } from '../services/appData.service.js';
 
@@ -33,61 +32,10 @@ export async function getStudentMe(req, res, next) {
   }
 }
 
-function normalizeDashboardPayload(payload) {
-  const seed = DEFAULT_LMS_DATA.dashboard;
-
-  const next = {
-    ...payload,
-    student: payload?.student ?? seed.student,
-    progress: payload?.progress ?? seed.progress,
-    notifications: payload?.notifications,
-    activeMaterial: payload?.activeMaterial,
-  };
-
-  if (!Array.isArray(next.notifications)) {
-    if (Array.isArray(payload?.news)) {
-      next.notifications = payload.news.map((n, idx) => ({
-        id: `news-${idx + 1}`,
-        type: 'info',
-        title: n.title,
-        message: n.snippet,
-        date: n.date,
-      }));
-    } else {
-      next.notifications = seed.notifications;
-    }
-  }
-
-  if (!next.activeMaterial) {
-    const first = Array.isArray(payload?.materials) ? payload.materials[0] : null;
-    next.activeMaterial = first
-      ? {
-          id: first.id,
-          name: first.name,
-          type: first.type,
-          resumeHref: '/materials',
-        }
-      : seed.activeMaterial;
-  }
-
-  return next;
-}
-
 export async function getDashboard(req, res, next) {
   try {
     const payload = await getOrCreateAppDataPayload('dashboard', DEFAULT_LMS_DATA.dashboard);
-    const normalized = normalizeDashboardPayload(payload);
-
-    const needsPatch =
-      !payload?.progress ||
-      !Array.isArray(payload?.notifications) ||
-      !payload?.activeMaterial;
-
-    if (needsPatch) {
-      await AppData.updateOne({ key: 'dashboard' }, { $set: { payload: normalized } });
-    }
-
-    res.json(normalized);
+    res.json(payload);
   } catch (err) {
     next(err);
   }

@@ -38,17 +38,23 @@ export default function SchedulePage() {
     );
   }
 
+  const classes = Array.isArray(data?.classes) ? data.classes : [];
+
   return (
     <CardShell title="Class Schedule">
-      <ul className="space-y-3 text-sm">
-        {data.classes.map((c) => (
-          <li key={c.id} className="rounded-lg border border-slate-200 p-4">
-            <div className="font-semibold text-slate-900">{c.name}</div>
-            <div className="mt-1 text-xs text-slate-500">{c.when}</div>
-            <div className="mt-2 text-xs text-slate-700">{c.location}</div>
-          </li>
-        ))}
-      </ul>
+      {classes.length === 0 ? (
+        <div className="text-sm text-slate-600">No classes scheduled yet.</div>
+      ) : (
+        <ul className="space-y-3 text-sm">
+          {classes.map((c, idx) => (
+            <li key={c.id || idx} className="rounded-lg border border-slate-200 p-4">
+              <div className="font-semibold text-slate-900">{c.name || '—'}</div>
+              <div className="mt-1 text-xs text-slate-500">{c.when || ''}</div>
+              <div className="mt-2 text-xs text-slate-700">{c.location || ''}</div>
+            </li>
+          ))}
+        </ul>
+      )}
     </CardShell>
   );
 }

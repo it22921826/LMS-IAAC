@@ -38,16 +38,22 @@ export default function PolicyPage() {
     );
   }
 
+  const sections = Array.isArray(data?.sections) ? data.sections : [];
+
   return (
     <CardShell title="Student Policy">
-      <div className="space-y-4">
-        {data.sections.map((s) => (
-          <section key={s.id} className="rounded-lg border border-slate-200 p-4">
-            <h3 className="text-sm font-semibold text-slate-900">{s.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{s.body}</p>
-          </section>
-        ))}
-      </div>
+      {sections.length === 0 ? (
+        <div className="text-sm text-slate-600">No policy content yet.</div>
+      ) : (
+        <div className="space-y-4">
+          {sections.map((s, idx) => (
+            <section key={s.id || idx} className="rounded-lg border border-slate-200 p-4">
+              <h3 className="text-sm font-semibold text-slate-900">{s.title || '—'}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-700">{s.body || ''}</p>
+            </section>
+          ))}
+        </div>
+      )}
     </CardShell>
   );
 }
