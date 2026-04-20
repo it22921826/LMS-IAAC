@@ -1,11 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout from './admin/layouts/AdminLayout.jsx';
-import AdminContentPage from './admin/pages/AdminContentPage.jsx';
 import AdminDashboardPage from './admin/pages/AdminDashboardPage.jsx';
 import AdminLoginPage from './admin/pages/AdminLoginPage.jsx';
-import AdminPaymentsPage from './admin/pages/AdminPaymentsPage.jsx';
+import AdminScheduleLecturePage from './admin/pages/AdminScheduleLecturePage.jsx';
 import AdminStudentsPage from './admin/pages/AdminStudentsPage.jsx';
 import AdminUsersPage from './admin/pages/AdminUsersPage.jsx';
+import AdminFacultiesPage from './admin/pages/AdminFacultiesPage.jsx';
+import AdminProgramsPage from './admin/pages/AdminProgramsPage.jsx';
+import AdminIntakesPage from './admin/pages/AdminIntakesPage.jsx';
+import AdminBatchStudentsPage from './admin/pages/AdminBatchStudentsPage.jsx';
 import StudentLayout from './layouts/StudentLayout.jsx';
 import CoursesPage from './pages/CoursesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -30,7 +33,12 @@ export default function App() {
           <Route index element={<AdminDashboardPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="students" element={<AdminStudentsPage />} />
-          <Route path="content" element={<AdminContentPage />} />
+          <Route path="faculties" element={<AdminFacultiesPage />} />
+          <Route path="faculties/:facultyId/programs" element={<AdminProgramsPage />} />
+          <Route path="programs/:programId/intakes" element={<AdminIntakesPage />} />
+          <Route path="programs/:programId/intakes/:intakeId/students" element={<AdminBatchStudentsPage />} />
+          {/* Content manager removed; keep a redirect for any old bookmarks */}
+          <Route path="schedule" element={<AdminScheduleLecturePage />} />
           <Route path="payments" element={<AdminPaymentsPage />} />
         </Route>
 

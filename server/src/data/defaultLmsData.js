@@ -64,4 +64,20 @@ export const DEFAULT_LMS_DATA = {
     },
     tickets: [],
   },
+
+  // Academic hierarchy used by admin lecture scheduling.
+  // Populate this via Admin Content editor under key: "academics".
+  // Shape:
+  // {
+  //   faculties: [
+  //     { id: 'fac-1', name: 'Faculty of ...', programs: [
+  //       { id: 'prog-1', name: 'Program ...', intakes: [
+  //         { id: 'int-1', name: 'Jan 2026', subjects: [ { id: 'sub-1', name: 'Subject ...' } ] }
+  //       ] }
+  //     ] }
+  //   ]
+  // }
+  academics: {
+    faculties: [],
+  },
 };

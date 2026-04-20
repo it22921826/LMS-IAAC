@@ -1061,9 +1061,20 @@ export default function AdminContentPage() {
     apiGet('/api/admin/app-data/keys')
       .then((json) => {
         if (cancelled) return;
-        setKeys(json.keys);
-        if (Array.isArray(json.keys) && json.keys.includes('dashboard')) setSelected('dashboard');
-        else if (Array.isArray(json.keys) && json.keys[0]) setSelected(json.keys[0]);
+        const list = Array.isArray(json.keys) ? json.keys : [];
+        setKeys(list);
+
+        // Prefer URL key if present (even if not in DB yet).
+        if (keyFromUrl) {
+          setSelected(keyFromUrl);
+          if (!list.includes(keyFromUrl)) {
+            setKeys([...list, keyFromUrl].sort((a, b) => String(a).localeCompare(String(b))));
+          }
+          return;
+        }
+
+        if (list.includes('dashboard')) setSelected('dashboard');
+        else if (list[0]) setSelected(list[0]);
       })
       .catch((err) => {
         if (!cancelled) setError(err);
@@ -1075,8 +1086,14 @@ export default function AdminContentPage() {
   }, []);
 
   useEffect(() => {
-    if (!Array.isArray(keys) || !keyFromUrl) return;
-    if (keys.includes(keyFromUrl)) setSelected(keyFromUrl);
+    if (!keyFromUrl) return;
+
+    // Allow opening / creating a key that doesn't exist yet.
+    setSelected(keyFromUrl);
+
+    if (Array.isArray(keys) && !keys.includes(keyFromUrl)) {
+      setKeys([...keys, keyFromUrl].sort((a, b) => String(a).localeCompare(String(b))));
+    }
   }, [keys, keyFromUrl]);
 
   const loadSelected = () => {
@@ -1095,7 +1112,18 @@ export default function AdminContentPage() {
         setMode(FORM_EDITORS[selected] ? 'form' : 'json');
       })
       .catch((err) => {
-        if (!cancelled) setError(err);
+        // If the key doesn't exist yet, initialize an empty payload
+        // so the user can hit Save to create it.
+        if (cancelled) return;
+        if (err && err.status === 404) {
+          setDraft({});
+          setPayloadText(prettyJson({}));
+          setMode('json');
+          setError(null);
+          return;
+        }
+
+        setError(err);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

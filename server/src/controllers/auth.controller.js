@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { Student } from '../models/Student.js';
 import { clearAuthCookie, setAuthCookie, signAuthToken } from '../middleware/auth.js';
+import { DEFAULT_LMS_DATA } from '../data/defaultLmsData.js';
+import { getOrCreateAppDataPayload } from '../services/appData.service.js';
 
 function isNonEmptyString(v) {
   return typeof v === 'string' && v.trim().length > 0;
@@ -17,6 +19,43 @@ function safeTrim(v) {
 function isValidEmail(email) {
   // Simple, pragmatic validation.
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function normalizeId(value) {
+  if (value == null) return '';
+  return String(value);
+}
+
+async function resolveInvite(intakeId, inviteToken) {
+  const safeIntakeId = normalizeId(intakeId).trim();
+  const safeToken = typeof inviteToken === 'string' ? inviteToken.trim() : '';
+
+  if (!safeIntakeId) return null;
+  if (!safeToken) return { error: 'Missing invite token' };
+
+  const payload = await getOrCreateAppDataPayload('academics', DEFAULT_LMS_DATA.academics);
+  const academics = payload && typeof payload === 'object' ? payload : DEFAULT_LMS_DATA.academics;
+  const faculties = Array.isArray(academics?.faculties) ? academics.faculties : [];
+
+  for (const faculty of faculties) {
+    const facultyId = normalizeId(faculty?.id || faculty?._id || faculty?.name);
+    const programs = Array.isArray(faculty?.programs) ? faculty.programs : [];
+    for (const program of programs) {
+      const programId = normalizeId(program?.id || program?._id || program?.name);
+      const intakes = Array.isArray(program?.intakes) ? program.intakes : [];
+      for (const intake of intakes) {
+        const foundIntakeId = normalizeId(intake?.id || intake?._id || intake?.name);
+        if (foundIntakeId !== safeIntakeId) continue;
+        const expected = typeof intake?.inviteToken === 'string' ? intake.inviteToken : '';
+        if (expected && expected === safeToken) {
+          return { facultyId, programId, intakeId: safeIntakeId };
+        }
+        return { error: 'Invalid batch link' };
+      }
+    }
+  }
+
+  return { error: 'Invalid batch link' };
 }
 
 function toMePayload(student) {
@@ -36,6 +75,10 @@ function toMePayload(student) {
     address: student.address,
     guardianName: student.guardianName,
     guardianPhoneNumber: student.guardianPhoneNumber,
+
+    facultyId: student.facultyId,
+    programId: student.programId,
+    intakeId: student.intakeId,
   };
 }
 
@@ -53,6 +96,8 @@ export async function registerStudent(req, res, next) {
       guardianName,
       guardianPhoneNumber,
       password,
+      intakeId,
+      inviteToken,
     } = req.body || {};
 
     const normalizedEmail = normalizeEmail(email);
@@ -80,6 +125,11 @@ export async function registerStudent(req, res, next) {
 
     const passwordHash = await bcrypt.hash(password.trim(), 12);
 
+    const invite = await resolveInvite(intakeId, inviteToken);
+    if (invite?.error) {
+      return res.status(400).json({ message: invite.error });
+    }
+
     const created = await Student.create({
       fullName: safeTrim(fullName),
       email: normalizedEmail,
@@ -91,6 +141,7 @@ export async function registerStudent(req, res, next) {
       address: safeTrim(address),
       guardianName: safeTrim(guardianName),
       guardianPhoneNumber: safeTrim(guardianPhoneNumber),
+      ...(invite ? invite : {}),
       passwordHash,
     });
 

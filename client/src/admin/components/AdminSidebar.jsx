@@ -1,12 +1,7 @@
 import {
   BookOpen,
   Calendar,
-  CreditCard,
-  Globe,
   LayoutDashboard,
-  Newspaper,
-  PlaySquare,
-  ScrollText,
   Users,
   GraduationCap,
 } from 'lucide-react';
@@ -16,24 +11,13 @@ const NAV = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
   { label: 'Users', to: '/admin/users', icon: Users },
   { label: 'Students', to: '/admin/students', icon: GraduationCap },
-  { label: 'Course Overview', to: '/admin/content?key=courses', icon: BookOpen },
-  { label: 'Class Schedule', to: '/admin/content?key=schedule', icon: Calendar },
-  { label: 'Payments', to: '/admin/payments', icon: CreditCard },
-  { label: 'Recordings', to: '/admin/content?key=recordings', icon: PlaySquare },
-  { label: 'Student Policy', to: '/admin/content?key=policy', icon: ScrollText },
-  { label: 'News', to: '/admin/content?key=dashboard', icon: Newspaper },
-  { label: 'Knowledge Hub', to: '/admin/content?key=knowledge-hub', icon: Globe },
+  // Course Overview now uses the hierarchical manager (Faculties -> Programs -> Intakes)
+  { label: 'Course Overview', to: '/admin/faculties', icon: BookOpen },
+  { label: 'Class Schedule', to: '/admin/schedule', icon: Calendar },
 ];
-
-function getKeyFromSearch(search) {
-  const s = typeof search === 'string' ? search : '';
-  const match = s.match(/[?&]key=([^&]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
 
 export default function AdminSidebar({ admin }) {
   const location = useLocation();
-  const selectedKey = getKeyFromSearch(location.search);
 
   return (
     <aside className="hidden min-h-screen w-64 shrink-0 border-r border-slate-200 bg-white md:block">
@@ -57,12 +41,10 @@ export default function AdminSidebar({ admin }) {
                 className={({ isActive }) =>
                   (() => {
                     const isAdminIndex = item.to === '/admin';
-                    const itemKey = getKeyFromSearch(item.to.split('?')[1] ? `?${item.to.split('?')[1]}` : '');
 
                     const active =
                       (isAdminIndex && location.pathname === '/admin') ||
-                      (item.to === '/admin/students' && location.pathname.startsWith('/admin/students')) ||
-                      (location.pathname === '/admin/content' && itemKey && itemKey === selectedKey);
+                      (item.to === '/admin/students' && location.pathname.startsWith('/admin/students'));
 
                     const isReallyActive = active || isActive;
 

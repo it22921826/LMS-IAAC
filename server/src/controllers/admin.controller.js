@@ -28,6 +28,7 @@ function toStudentListItem(student) {
     course: student.course,
     phoneNumber: student.phoneNumber,
     whatsappNumber: student.whatsappNumber,
+    intakeId: student.intakeId,
     createdAt: student.createdAt,
   };
 }
@@ -63,16 +64,20 @@ export async function listStudents(req, res, next) {
   try {
     const limit = Math.min(200, Math.max(1, Number(req.query.limit || 50)));
     const q = safeTrim(req.query.q);
+    const intakeId = safeTrim(req.query.intakeId);
 
-    const filter = q
-      ? {
-          $or: [
-            { fullName: { $regex: q, $options: 'i' } },
-            { email: { $regex: q, $options: 'i' } },
-            { studentId: { $regex: q, $options: 'i' } },
-          ],
-        }
-      : {};
+    const filter = {
+      ...(q
+        ? {
+            $or: [
+              { fullName: { $regex: q, $options: 'i' } },
+              { email: { $regex: q, $options: 'i' } },
+              { studentId: { $regex: q, $options: 'i' } },
+            ],
+          }
+        : {}),
+      ...(intakeId ? { intakeId } : {}),
+    };
 
     const items = await Student.find(filter)
       .sort({ createdAt: -1 })

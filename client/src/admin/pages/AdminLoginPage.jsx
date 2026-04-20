@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../../api/http.js';
+import { ShieldCheck, Lock, Mail } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -15,49 +16,63 @@ export default function AdminLoginPage() {
     setError(null);
 
     apiPost('/api/admin/auth/login', { email, password })
-      .then(() => {
-        navigate('/admin', { replace: true });
-      })
-      .catch((err) => {
-        setError(err);
-      })
+      .then(() => navigate('/admin', { replace: true }))
+      .catch((err) => setError(err))
       .finally(() => setSubmitting(false));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-lg">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-slate-900">Admin Login</h1>
-          <p className="mt-1 text-sm text-slate-600">Sign in to manage students and content.</p>
+    <div className="min-h-screen flex bg-slate-50">
+      {/* LEFT: Branding/Security Panel */}
+      <div className="hidden lg:flex w-1/3 bg-slate-900 p-12 flex-col justify-center text-white">
+        <ShieldCheck className="h-16 w-16 text-sky-400 mb-8" />
+        <h1 className="text-4xl font-bold mb-4">Admin Portal</h1>
+        <p className="text-slate-400 text-lg leading-relaxed">
+          Authorized personnel only. Manage student records, lecture schedules, and global LMS settings.
+        </p>
+      </div>
 
-          {error ? (
-            <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              {error.message || 'Login failed.'}
+      {/* RIGHT: Login Form */}
+      <div className="w-full lg:w-2/3 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
+            <p className="text-slate-500">Sign in to the IAAC Management System</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {error.message || 'Authentication failed.'}
             </div>
-          ) : null}
+          )}
 
-          <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-            <div>
-              <label className="text-sm font-semibold text-slate-700">Email</label>
+          <form onSubmit={onSubmit} className="space-y-6">
+            <div className="relative">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">Admin Email</label>
+              <div className="absolute left-3 top-[38px] text-slate-400">
+                <Mail className="h-4 w-4" />
+              </div>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="username"
+                className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
+                placeholder="admin@iaac.com"
                 required
               />
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700">Password</label>
+            <div className="relative">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">Password</label>
+              <div className="absolute left-3 top-[38px] text-slate-400">
+                <Lock className="h-4 w-4" />
+              </div>
               <input
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="current-password"
+                className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 text-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 transition-all"
+                placeholder="••••••••"
                 required
               />
             </div>
@@ -65,9 +80,9 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex w-full items-center justify-center rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:opacity-60"
+              className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 disabled:opacity-70"
             >
-              {submitting ? 'Signing in…' : 'Sign in'}
+              {submitting ? 'Verifying...' : 'Access System'}
             </button>
           </form>
         </div>

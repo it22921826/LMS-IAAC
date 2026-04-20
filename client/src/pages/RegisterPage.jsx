@@ -1,22 +1,24 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { apiPost } from '../api/http.js';
+import { PlaneTakeoff } from 'lucide-react';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const invite = useMemo(() => {
+    const params = new URLSearchParams(location.search || '');
+    const intakeId = (params.get('intakeId') || '').trim();
+    const inviteToken = (params.get('token') || params.get('inviteToken') || '').trim();
+    return { intakeId, inviteToken };
+  }, [location.search]);
 
   const [form, setForm] = useState({
-    fullName: '',
-    email: '',
-    nic: '',
-    course: '',
-    studentId: '',
-    whatsappNumber: '',
-    phoneNumber: '',
-    address: '',
-    guardianName: '',
-    guardianPhoneNumber: '',
-    password: '',
+    fullName: '', email: '', nic: '', course: '', studentId: '',
+    whatsappNumber: '', phoneNumber: '', address: '',
+    guardianName: '', guardianPhoneNumber: '', password: '',
+    school: '', olResult: '', olMath: '', olEnglish: '', dob: '', gender: ''
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -28,166 +30,106 @@ export default function RegisterPage() {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-
-    apiPost('/api/auth/register', form)
-      .then(() => {
-        navigate('/dashboard', { replace: true });
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setSubmitting(false);
-      });
+    apiPost('/api/auth/register', {
+      ...form,
+      ...(invite.intakeId ? invite : {}),
+    })
+      .then(() => navigate('/dashboard', { replace: true }))
+      .catch((err) => setError(err))
+      .finally(() => setSubmitting(false));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-bold text-slate-900">Student Registration</h1>
-          <p className="mt-1 text-sm text-slate-600">Create your IAAC student account.</p>
+    <div className="min-h-screen flex bg-slate-50">
+      {/* Sidebar Branding */}
+      <div className="hidden lg:flex w-1/3 bg-[#003580] p-12 flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-white">
+            <PlaneTakeoff className="h-8 w-8" />
+            <span className="text-2xl font-bold">IAAC</span>
+          </div>
+          <h1 className="text-white text-3xl font-bold mt-10 leading-tight">Join the Academy</h1>
+          <p className="text-sky-200 mt-4 text-sm">Providing the future of aviation with elite training and professional development.</p>
+        </div>
+      </div>
 
-          {error ? (
-            <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              {error.message || 'Registration failed.'}
-            </div>
-          ) : null}
-
-          <form className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={onSubmit}>
-            <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-700">Full name *</label>
-              <input
-                value={form.fullName}
-                onChange={update('fullName')}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="name"
-                required
-              />
-            </div>
-
+      {/* Registration Form Area */}
+      <div className="w-full lg:w-2/3 p-8 lg:p-16 overflow-y-auto">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
+          <form onSubmit={onSubmit} className="space-y-8 mt-6">
+            
+            {/* PERSONAL INFO */}
             <div>
-              <label className="text-sm font-semibold text-slate-700">Email *</label>
-              <input
-                value={form.email}
-                onChange={update('email')}
-                type="email"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="email"
-                required
-              />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b pb-2 mb-4">Personal Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="Full Name" value={form.fullName} onChange={update('fullName')} required />
+                <Input label="Email Address" type="email" value={form.email} onChange={update('email')} required />
+                <Input label="Date of Birth" type="date" value={form.dob} onChange={update('dob')} required />
+                <Select label="Gender" value={form.gender} onChange={update('gender')} options={['Male', 'Female', 'Other']} required />
+                <Input label="NIC / Passport" value={form.nic} onChange={update('nic')} />
+                <Input label="WhatsApp Number" value={form.whatsappNumber} onChange={update('whatsappNumber')} />
+              </div>
             </div>
 
+            {/* EDUCATIONAL BACKGROUND - NEW */}
             <div>
-              <label className="text-sm font-semibold text-slate-700">Student ID *</label>
-              <input
-                value={form.studentId}
-                onChange={update('studentId')}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="username"
-                required
-              />
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b pb-2 mb-4">Educational Background</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input label="School Name" value={form.school} onChange={update('school')} />
+                <Input label="O/L Full Result" value={form.olResult} onChange={update('olResult')} />
+                <Input label="O/L Math Result" value={form.olMath} onChange={update('olMath')} />
+                <Input label="O/L English Result" value={form.olEnglish} onChange={update('olEnglish')} />
+              </div>
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700">NIC</label>
-              <input
-                value={form.nic}
-                onChange={update('nic')}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
+            {/* ACADEMIC & EMERGENCY */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b pb-2 mb-4">Academic</h3>
+                <div className="space-y-4">
+                    <Input label="Student ID" value={form.studentId} onChange={update('studentId')} required />
+                    <Input label="Course Name" value={form.course} onChange={update('course')} />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b pb-2 mb-4">Emergency</h3>
+                <div className="space-y-4">
+                    <Input label="Guardian Name" value={form.guardianName} onChange={update('guardianName')} />
+                    <Input label="Guardian Phone" value={form.guardianPhoneNumber} onChange={update('guardianPhoneNumber')} />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700">Course</label>
-              <input
-                value={form.course}
-                onChange={update('course')}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
+            <Input label="Create Password" type="password" value={form.password} onChange={update('password')} required />
 
-            <div>
-              <label className="text-sm font-semibold text-slate-700">WhatsApp number</label>
-              <input
-                value={form.whatsappNumber}
-                onChange={update('whatsappNumber')}
-                type="tel"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold text-slate-700">Phone number</label>
-              <input
-                value={form.phoneNumber}
-                onChange={update('phoneNumber')}
-                type="tel"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-700">Address</label>
-              <input
-                value={form.address}
-                onChange={update('address')}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold text-slate-700">Guardian name</label>
-              <input
-                value={form.guardianName}
-                onChange={update('guardianName')}
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold text-slate-700">Guardian phone number</label>
-              <input
-                value={form.guardianPhoneNumber}
-                onChange={update('guardianPhoneNumber')}
-                type="tel"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-slate-700">Password *</label>
-              <input
-                value={form.password}
-                onChange={update('password')}
-                type="password"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-                autoComplete="new-password"
-                required
-                minLength={8}
-              />
-              <div className="mt-2 text-xs text-slate-500">Minimum 8 characters.</div>
-            </div>
-
-            <div className="md:col-span-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex w-full items-center justify-center rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:opacity-60"
-              >
-                {submitting ? 'Creating account…' : 'Create account'}
-              </button>
-            </div>
-
-            <div className="md:col-span-2 text-center text-sm text-slate-600">
-              Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-sky-700 hover:text-sky-800">
-                Sign in
-              </Link>
-            </div>
+            <button type="submit" disabled={submitting} className="w-full bg-[#003580] text-white py-4 rounded-xl font-bold hover:bg-blue-900 transition-all">
+              {submitting ? 'Processing...' : 'Complete Registration'}
+            </button>
           </form>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Input({ label, type = "text", value, onChange, required }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-700 mb-1">{label}</label>
+      <input type={type} value={value} onChange={onChange} required={required} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none" />
+    </div>
+  );
+}
+
+function Select({ label, value, onChange, options, required }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-slate-700 mb-1">{label}</label>
+      <select value={value} onChange={onChange} required={required} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none bg-white">
+        <option value="">Select...</option>
+        {options.map(opt => <option key={opt} value={opt.toLowerCase()}>{opt}</option>)}
+      </select>
     </div>
   );
 }
