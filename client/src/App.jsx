@@ -18,7 +18,6 @@ import MaterialsPage from './pages/MaterialsPage.jsx';
 import PolicyPage from './pages/PolicyPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import RecordingsPage from './pages/RecordingsPage.jsx';
-import ResultsPage from './pages/ResultsPage.jsx';
 import SchedulePage from './pages/SchedulePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
@@ -38,8 +37,8 @@ export default function App() {
           <Route path="programs/:programId/intakes" element={<AdminIntakesPage />} />
           <Route path="programs/:programId/intakes/:intakeId/students" element={<AdminBatchStudentsPage />} />
           {/* Content manager removed; keep a redirect for any old bookmarks */}
+          <Route path="content" element={<Navigate to="/admin" replace />} />
           <Route path="schedule" element={<AdminScheduleLecturePage />} />
-          <Route path="payments" element={<AdminPaymentsPage />} />
         </Route>
 
         {/* Student */}
@@ -54,7 +53,6 @@ export default function App() {
           <Route path="knowledge-hub" element={<KnowledgeHubPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="recordings" element={<RecordingsPage />} />
-          <Route path="results" element={<ResultsPage />} />
           <Route path="policy" element={<PolicyPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="help" element={<HelpDeskPage />} />

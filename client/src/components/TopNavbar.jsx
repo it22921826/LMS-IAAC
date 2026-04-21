@@ -63,7 +63,9 @@ export default function TopNavbar({ student, onLogout }) {
             {/* Profile Section */}
             <div className="flex items-center gap-3 border-l border-slate-200 pl-4 py-1">
               <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-slate-900">{student?.name || 'Dilan Augustine'}</p>
+                <NavLink to="/profile" className="text-xs font-bold text-slate-900 hover:underline">
+                  {student?.name || 'Dilan Augustine'}
+                </NavLink>
                 <button
                   type="button"
                   onClick={onLogout}
@@ -72,13 +74,17 @@ export default function TopNavbar({ student, onLogout }) {
                   <LogOut className="h-3 w-3" /> Log Out
                 </button>
               </div>
-              <div className="h-9 w-9 rounded-full border-2 border-sky-100 p-0.5">
+              <NavLink
+                to="/profile"
+                className="h-9 w-9 rounded-full border-2 border-sky-100 p-0.5 focus:outline-none focus:ring-2 focus:ring-sky-200"
+                aria-label="Open profile"
+              >
                 <img 
                   src={student?.avatarDataUri || student?.avatar || "https://ui-avatars.com/api/?name=Dilan+Augustine&background=0369a1&color=fff"} 
                   className="h-full w-full rounded-full object-cover"
                   alt="Profile"
                 />
-              </div>
+              </NavLink>
             </div>
           </div>
 
