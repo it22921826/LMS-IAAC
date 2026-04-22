@@ -34,6 +34,40 @@ export function requireAdmin(req, res, next) {
   }
 }
 
+export function getEffectiveAdminRole(adminAuth) {
+  const role = adminAuth?.role ? String(adminAuth.role) : '';
+  // Backward-compat: existing tokens/admin docs had no role, treat as superadmin.
+  if (!role) return 'superadmin';
+  return role;
+}
+
+export function requireAdminRole(roles) {
+  const allowed = Array.isArray(roles) ? roles.map(String) : [String(roles)];
+  return (req, res, next) => {
+    const role = getEffectiveAdminRole(req.adminAuth);
+    if (!allowed.includes(role)) return res.status(403).json({ message: 'Forbidden' });
+    return next();
+  };
+}
+
+export function requireAdminForAppDataKey(options = {}) {
+  void options;
+  return (req, res, next) => {
+    const role = getEffectiveAdminRole(req.adminAuth);
+    const key = String(req.params?.key || '');
+
+    if (role === 'superadmin') return next();
+
+    // Staff: only allowed to read/write schedule data.
+    if (role === 'staff') {
+      if (key === 'schedule') return next();
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    return res.status(403).json({ message: 'Forbidden' });
+  };
+}
+
 export function setAdminCookie(res, token) {
   const isProd = process.env.NODE_ENV === 'production';
   res.cookie(COOKIE_NAME, token, {

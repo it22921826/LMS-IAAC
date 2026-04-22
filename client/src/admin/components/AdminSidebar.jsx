@@ -18,6 +18,8 @@ const NAV = [
 
 export default function AdminSidebar({ admin }) {
   const location = useLocation();
+  const role = admin?.role || 'superadmin';
+  const nav = role === 'staff' ? NAV.filter((i) => !['/admin/users', '/admin/faculties'].includes(i.to)) : NAV;
 
   return (
     <aside className="hidden min-h-screen w-64 shrink-0 border-r border-slate-200 bg-white md:block">
@@ -33,7 +35,7 @@ export default function AdminSidebar({ admin }) {
 
       <nav className="p-3">
         <ul className="space-y-1">
-          {NAV.map((item) => (
+          {nav.map((item) => (
             <li key={item.to}>
               <NavLink
                 to={item.to}

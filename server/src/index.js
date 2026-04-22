@@ -23,7 +23,7 @@ if (dbConnected) {
     const existing = await Admin.findOne({ email: bootstrapEmail }).lean();
     if (!existing) {
       const passwordHash = await bcrypt.hash(bootstrapPassword, 12);
-      await Admin.create({ name: bootstrapName, email: bootstrapEmail, passwordHash });
+      await Admin.create({ name: bootstrapName, email: bootstrapEmail, passwordHash, role: 'superadmin' });
       // eslint-disable-next-line no-console
       console.log(`Bootstrapped admin: ${bootstrapEmail}`);
     }

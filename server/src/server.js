@@ -6,7 +6,7 @@ import morgan from 'morgan';
 
 import { notFoundHandler, errorHandler } from './middleware/errorHandlers.js';
 import { requireAuth } from './middleware/auth.js';
-import { requireAdmin } from './middleware/adminAuth.js';
+import { requireAdmin, requireAdminRole } from './middleware/adminAuth.js';
 import { healthRouter } from './routes/health.routes.js';
 import { authRouter } from './routes/auth.routes.js';
 import { adminAuthRouter } from './routes/adminAuth.routes.js';
@@ -60,7 +60,7 @@ export function createServer() {
   app.use('/api/admin', requireAdmin, adminRouter);
 
   // Generic hierarchical management (admin-only)
-  app.use('/api/entities', requireAdmin, entitiesRouter);
+  app.use('/api/entities', requireAdmin, requireAdminRole('superadmin'), entitiesRouter);
 
   app.use('/api', requireAuth, lmsRouter);
 

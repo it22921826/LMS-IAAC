@@ -15,6 +15,12 @@ const AdminSchema = new Schema(
       index: true,
     },
     passwordHash: { type: String, required: true },
+    role: {
+      type: String,
+      trim: true,
+      enum: ['superadmin', 'staff'],
+      default: 'staff',
+    },
   },
   { timestamps: true }
 );

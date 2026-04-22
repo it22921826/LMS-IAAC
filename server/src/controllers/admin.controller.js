@@ -33,6 +33,17 @@ function toStudentListItem(student) {
   };
 }
 
+function toAdminListItem(admin) {
+  const role = admin?.role ? String(admin.role) : 'superadmin';
+  return {
+    id: String(admin._id),
+    name: admin.name,
+    email: admin.email,
+    role,
+    createdAt: admin.createdAt,
+  };
+}
+
 export async function getAdminMetrics(req, res, next) {
   try {
     const [students, admins] = await Promise.all([
@@ -56,6 +67,49 @@ export async function getAdminMetrics(req, res, next) {
       rejectedPayments: 0,
     });
   } catch (err) {
+    next(err);
+  }
+}
+
+export async function listAdminUsers(req, res, next) {
+  try {
+    const items = await Admin.find({})
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ users: items.map(toAdminListItem) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function createStaffUser(req, res, next) {
+  try {
+    const { name, email, password } = req.body || {};
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!safeTrim(name)) return res.status(400).json({ message: 'Name is required' });
+    if (!isValidEmail(normalizedEmail)) return res.status(400).json({ message: 'Valid email is required' });
+    if (typeof password !== 'string' || password.trim().length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+
+    const existing = await Admin.findOne({ email: normalizedEmail }).lean();
+    if (existing) return res.status(409).json({ message: 'Email already exists' });
+
+    const passwordHash = await bcrypt.hash(password.trim(), 12);
+    const created = await Admin.create({
+      name: safeTrim(name),
+      email: normalizedEmail,
+      passwordHash,
+      role: 'staff',
+    });
+
+    res.status(201).json({ user: toAdminListItem(created) });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
     next(err);
   }
 }

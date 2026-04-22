@@ -7,10 +7,12 @@ function normalizeEmail(email) {
 }
 
 function toAdminMePayload(admin) {
+  const role = admin?.role ? String(admin.role) : 'superadmin';
   return {
     id: String(admin._id),
     name: admin.name,
     email: admin.email,
+    role,
   };
 }
 
@@ -29,7 +31,8 @@ export async function adminLogin(req, res, next) {
     const ok = await bcrypt.compare(password.trim(), admin.passwordHash);
     if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = signAdminToken({ sub: String(admin._id) });
+    const role = admin?.role ? String(admin.role) : 'superadmin';
+    const token = signAdminToken({ sub: String(admin._id), role });
     setAdminCookie(res, token);
 
     return res.json({ admin: toAdminMePayload(admin) });

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiGet } from '../../api/http.js';
+import { useOutletContext } from 'react-router-dom';
 
 function StatCard({ label, value }) {
   return (
@@ -11,6 +12,7 @@ function StatCard({ label, value }) {
 }
 
 export default function AdminDashboardPage() {
+  const { admin } = useOutletContext() || {};
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState(null);
 
@@ -43,7 +45,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="absolute left-0 top-6 h-20 w-1.5 rounded-r-full bg-sky-700" aria-hidden="true" />
-        <div className="text-xl font-bold text-slate-900">Welcome, Super Admin!</div>
+        <div className="text-xl font-bold text-slate-900">Welcome, {admin?.name || 'Admin'}!</div>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
           Manage student records, monitor course progress, and publish updates across the portal.
         </p>

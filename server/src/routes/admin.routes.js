@@ -1,8 +1,11 @@
 import { Router } from 'express';
+import { requireAdminForAppDataKey, requireAdminRole } from '../middleware/adminAuth.js';
 import {
   createStudentByAdmin,
+  createStaffUser,
   getAdminMetrics,
   getAppDataByKey,
+  listAdminUsers,
   listAppDataKeys,
   listStudents,
   upsertAppDataByKey,
@@ -16,17 +19,21 @@ import {
 
 export const adminRouter = Router();
 
-adminRouter.get('/metrics', getAdminMetrics);
+adminRouter.get('/metrics', requireAdminRole(['superadmin', 'staff']), getAdminMetrics);
 
-adminRouter.get('/students', listStudents);
-adminRouter.post('/students', createStudentByAdmin);
+// Admin users (superadmin only)
+adminRouter.get('/users', requireAdminRole('superadmin'), listAdminUsers);
+adminRouter.post('/users', requireAdminRole('superadmin'), createStaffUser);
 
-adminRouter.get('/app-data/keys', listAppDataKeys);
-adminRouter.get('/app-data/:key', getAppDataByKey);
-adminRouter.put('/app-data/:key', upsertAppDataByKey);
+adminRouter.get('/students', requireAdminRole(['superadmin', 'staff']), listStudents);
+adminRouter.post('/students', requireAdminRole(['superadmin', 'staff']), createStudentByAdmin);
+
+adminRouter.get('/app-data/keys', requireAdminRole('superadmin'), listAppDataKeys);
+adminRouter.get('/app-data/:key', requireAdminForAppDataKey({ mode: 'read' }), getAppDataByKey);
+adminRouter.put('/app-data/:key', requireAdminForAppDataKey({ mode: 'write' }), upsertAppDataByKey);
 
 // Academics (cascading select options)
-adminRouter.get('/academics/faculties', listFaculties);
-adminRouter.get('/academics/programs', listPrograms);
-adminRouter.get('/academics/intakes', listIntakes);
-adminRouter.get('/academics/subjects', listSubjects);
+adminRouter.get('/academics/faculties', requireAdminRole(['superadmin', 'staff']), listFaculties);
+adminRouter.get('/academics/programs', requireAdminRole(['superadmin', 'staff']), listPrograms);
+adminRouter.get('/academics/intakes', requireAdminRole(['superadmin', 'staff']), listIntakes);
+adminRouter.get('/academics/subjects', requireAdminRole(['superadmin', 'staff']), listSubjects);
