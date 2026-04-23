@@ -65,19 +65,34 @@ export const DEFAULT_LMS_DATA = {
     tickets: [],
   },
 
-  // Academic hierarchy used by admin lecture scheduling.
-  // Populate this via Admin Content editor under key: "academics".
+  // Academic hierarchy for material upload and student management.
+  // Structure: Branch → Intake → Batch
+  // Branches represent physical locations/campuses
+  // Intakes represent cohort periods (e.g., "Jan 2026", "Jul 2026") 
+  // Batches represent groups within an intake (e.g., "Batch A", "Batch B")
+  // 
   // Shape:
   // {
-  //   faculties: [
-  //     { id: 'fac-1', name: 'Faculty of ...', programs: [
-  //       { id: 'prog-1', name: 'Program ...', intakes: [
-  //         { id: 'int-1', name: 'Jan 2026', subjects: [ { id: 'sub-1', name: 'Subject ...' } ] }
-  //       ] }
-  //     ] }
+  //   branches: [
+  //     { 
+  //       id: 'branch-colombo', 
+  //       name: 'Colombo Campus', 
+  //       intakes: [
+  //         { 
+  //           id: 'int-jan2026', 
+  //           name: 'January 2026', 
+  //           batches: [
+  //             { id: 'batch-a', name: 'Batch A', studentCount: 25 },
+  //             { id: 'batch-b', name: 'Batch B', studentCount: 23 }
+  //           ]
+  //         }
+  //       ]
+  //     }
   //   ]
   // }
   academics: {
+    branches: [],
+    // Legacy faculty structure (keep for backward compatibility)
     faculties: [],
   },
 };

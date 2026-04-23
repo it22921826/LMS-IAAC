@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { Admin } from '../models/Admin.js';
 
 const COOKIE_NAME = 'iaac_admin_token';
 
@@ -11,6 +12,44 @@ function getJwtSecret() {
   }
 
   return 'dev_only_change_me';
+}
+
+// Log admin actions for audit trail
+export async function logAdminAction(adminId, action, details = {}) {
+  try {
+    console.log(`[ADMIN ACTION] ${new Date().toISOString()} - Admin ${adminId}: ${action}`, details);
+    // Could be extended to save to database or external logging service
+  } catch (error) {
+    console.error('Failed to log admin action:', error);
+  }
+}
+
+// Check if action requires super admin permissions
+export function requireSuperAdmin(action) {
+  const superAdminActions = [
+    'CREATE_STAFF_ADMIN',
+    'EDIT_STAFF_ADMIN', 
+    'DELETE_STAFF_ADMIN',
+    'EDIT_CONTENT',
+    'DELETE_CONTENT',
+    'VIEW_ANALYTICS',
+    'MANAGE_SETTINGS',
+    'MANAGE_FACULTIES',
+    'MANAGE_PROGRAMS',
+    'MANAGE_INTAKES'
+  ];
+  return superAdminActions.includes(action);
+}
+
+// Check if action is allowed for staff admin
+export function isStaffAllowedAction(action) {
+  const staffAllowedActions = [
+    'ADD_MATERIALS',
+    'ADD_SCHEDULE',
+    'VIEW_STUDENTS',
+    'CREATE_STUDENT'
+  ];
+  return staffAllowedActions.includes(action);
 }
 
 export function signAdminToken(payload, options = {}) {
@@ -51,17 +90,63 @@ export function requireAdminRole(roles) {
 }
 
 export function requireAdminForAppDataKey(options = {}) {
-  void options;
+  const { mode = 'read' } = options;
   return (req, res, next) => {
     const role = getEffectiveAdminRole(req.adminAuth);
     const key = String(req.params?.key || '');
+    const adminId = req.adminAuth?.id;
 
-    if (role === 'superadmin') return next();
+    if (role === 'superadmin') {
+      if (mode === 'write') {
+        logAdminAction(adminId, `EDIT_CONTENT_${key.toUpperCase()}`, { key, mode });
+      }
+      return next();
+    }
 
-    // Staff: only allowed to read/write schedule data.
+    // Staff permissions for app data
     if (role === 'staff') {
-      if (key === 'schedule') return next();
-      return res.status(403).json({ message: 'Forbidden' });
+      // Staff can add/read materials and schedule
+      const allowedKeys = ['materials', 'schedule'];
+      
+      if (allowedKeys.includes(key)) {
+        if (mode === 'write') {
+          // Staff can only ADD, not edit existing content
+          logAdminAction(adminId, `ADD_CONTENT_${key.toUpperCase()}`, { key, mode });
+        }
+        return next();
+      }
+      
+      return res.status(403).json({ 
+        message: "You don't have permission to perform this action. Please contact your super admin." 
+      });
+    }
+
+    return res.status(403).json({ message: 'Forbidden' });
+  };
+}
+
+// Enhanced role checking with action-based permissions
+export function requirePermission(action) {
+  return (req, res, next) => {
+    const role = getEffectiveAdminRole(req.adminAuth);
+    const adminId = req.adminAuth?.id;
+
+    if (role === 'superadmin') {
+      if (requireSuperAdmin(action)) {
+        logAdminAction(adminId, action, { role });
+      }
+      return next();
+    }
+
+    if (role === 'staff') {
+      if (isStaffAllowedAction(action)) {
+        logAdminAction(adminId, action, { role });
+        return next();
+      }
+      
+      return res.status(403).json({ 
+        message: "You don't have permission to perform this action. Please contact your super admin." 
+      });
     }
 
     return res.status(403).json({ message: 'Forbidden' });

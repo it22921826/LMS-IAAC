@@ -26,10 +26,15 @@ const StudentSchema = new Schema(
     guardianName: { type: String, trim: true, maxlength: 120 },
     guardianPhoneNumber: { type: String, trim: true, maxlength: 30 },
 
-    // Academic hierarchy association (set when registering via a batch invite link)
+    // Academic hierarchy association
+    // New structure: Branch → Intake → Batch
+    branchId: { type: String, trim: true, maxlength: 64, index: true },
+    intakeId: { type: String, trim: true, maxlength: 64, index: true },
+    batchId: { type: String, trim: true, maxlength: 64, index: true },
+    
+    // Legacy structure (keep for backward compatibility)
     facultyId: { type: String, trim: true, maxlength: 64, index: true },
     programId: { type: String, trim: true, maxlength: 64, index: true },
-    intakeId: { type: String, trim: true, maxlength: 64, index: true },
 
     passwordHash: { type: String, required: true },
   },

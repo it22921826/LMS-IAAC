@@ -4,7 +4,6 @@ import {
   getDashboard,
   getHelp,
   getKnowledgeHub,
-  getMaterials,
   getPolicy,
   getProfile,
   getRecordings,
@@ -19,7 +18,6 @@ lmsRouter.get('/student/me', getStudentMe);
 
 lmsRouter.get('/dashboard', getDashboard);
 lmsRouter.get('/courses', getCourses);
-lmsRouter.get('/materials', getMaterials);
 lmsRouter.get('/knowledge-hub', getKnowledgeHub);
 lmsRouter.get('/schedule', getSchedule);
 lmsRouter.get('/recordings', getRecordings);

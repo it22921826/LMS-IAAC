@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { AppData } from '../models/AppData.js';
 import { Student } from '../models/Student.js';
 import { Admin } from '../models/Admin.js';
+import { logAdminAction } from '../middleware/adminAuth.js';
 
 function safeTrim(v) {
   return typeof v === 'string' ? v.trim() : '';
@@ -103,6 +104,13 @@ export async function createStaffUser(req, res, next) {
       email: normalizedEmail,
       passwordHash,
       role: 'staff',
+    });
+
+    // Log the action
+    await logAdminAction(req.adminAuth?.id, 'CREATE_STAFF_ADMIN', {
+      staffAdminId: created._id,
+      staffAdminEmail: normalizedEmail,
+      staffAdminName: safeTrim(name)
     });
 
     res.status(201).json({ user: toAdminListItem(created) });
@@ -238,6 +246,103 @@ export async function upsertAppDataByKey(req, res, next) {
     ).lean();
 
     res.json({ key: updated.key, payload: updated.payload, updatedAt: updated.updatedAt });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Edit staff admin (superadmin only)
+export async function editStaffUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { name, email, password } = req.body || {};
+    
+    if (!id) return res.status(400).json({ message: 'Admin ID is required' });
+    
+    const admin = await Admin.findById(id).lean();
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    
+    // Prevent editing superadmin accounts (only staff can be edited)
+    if (admin.role === 'superadmin') {
+      return res.status(403).json({ message: 'Cannot edit superadmin accounts' });
+    }
+
+    const updateData = {};
+    
+    if (name && safeTrim(name)) {
+      updateData.name = safeTrim(name);
+    }
+    
+    if (email) {
+      const normalizedEmail = normalizeEmail(email);
+      if (!isValidEmail(normalizedEmail)) {
+        return res.status(400).json({ message: 'Valid email is required' });
+      }
+      
+      // Check if email is already used by another admin
+      const existing = await Admin.findOne({ 
+        email: normalizedEmail, 
+        _id: { $ne: id } 
+      }).lean();
+      if (existing) {
+        return res.status(409).json({ message: 'Email already exists' });
+      }
+      
+      updateData.email = normalizedEmail;
+    }
+    
+    if (password && typeof password === 'string' && password.trim().length >= 8) {
+      updateData.passwordHash = await bcrypt.hash(password.trim(), 12);
+    }
+
+    const updated = await Admin.findByIdAndUpdate(id, updateData, { new: true }).lean();
+    
+    // Log the action
+    await logAdminAction(req.adminAuth?.id, 'EDIT_STAFF_ADMIN', {
+      staffAdminId: id,
+      changes: Object.keys(updateData),
+      staffAdminEmail: updated.email
+    });
+
+    res.json({ user: toAdminListItem(updated) });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
+    next(err);
+  }
+}
+
+// Delete staff admin (superadmin only)
+export async function deleteStaffUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    
+    if (!id) return res.status(400).json({ message: 'Admin ID is required' });
+    
+    const admin = await Admin.findById(id).lean();
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    
+    // Prevent deleting superadmin accounts
+    if (admin.role === 'superadmin') {
+      return res.status(403).json({ message: 'Cannot delete superadmin accounts' });
+    }
+    
+    // Prevent self-deletion
+    if (String(admin._id) === String(req.adminAuth?.id)) {
+      return res.status(403).json({ message: 'Cannot delete your own account' });
+    }
+
+    await Admin.findByIdAndDelete(id);
+    
+    // Log the action
+    await logAdminAction(req.adminAuth?.id, 'DELETE_STAFF_ADMIN', {
+      staffAdminId: id,
+      staffAdminEmail: admin.email,
+      staffAdminName: admin.name
+    });
+
+    res.json({ message: 'Staff admin deleted successfully' });
   } catch (err) {
     next(err);
   }

@@ -4,22 +4,23 @@ import {
   LayoutDashboard,
   Users,
   GraduationCap,
+  Upload,
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 const NAV = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
-  { label: 'Users', to: '/admin/users', icon: Users },
+  { label: 'Users', to: '/admin/users', icon: Users, superAdminOnly: true },
   { label: 'Students', to: '/admin/students', icon: GraduationCap },
-  // Course Overview now uses the hierarchical manager (Faculties -> Programs -> Intakes)
-  { label: 'Course Overview', to: '/admin/faculties', icon: BookOpen },
+  { label: 'Course Overview', to: '/admin/faculties', icon: BookOpen, superAdminOnly: true },
+  { label: 'Upload Materials', to: '/admin/materials/upload', icon: Upload },
   { label: 'Class Schedule', to: '/admin/schedule', icon: Calendar },
 ];
 
 export default function AdminSidebar({ admin }) {
   const location = useLocation();
   const role = admin?.role || 'superadmin';
-  const nav = role === 'staff' ? NAV.filter((i) => !['/admin/users', '/admin/faculties'].includes(i.to)) : NAV;
+  const nav = NAV.filter((item) => !item.superAdminOnly || role === 'superadmin');
 
   return (
     <aside className="hidden min-h-screen w-64 shrink-0 border-r border-slate-200 bg-white md:block">
@@ -27,13 +28,29 @@ export default function AdminSidebar({ admin }) {
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003580] font-bold text-white">
           IA
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold text-slate-900">IAAC Admin</div>
           <div className="truncate text-[11px] font-semibold text-slate-500">{admin?.name || 'Admin'}</div>
+          <div className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold mt-1 ${
+            role === 'superadmin' 
+              ? 'bg-purple-100 text-purple-700' 
+              : 'bg-blue-100 text-blue-700'
+          }`}>
+            {role === 'superadmin' ? 'Super Admin' : 'Staff Admin'}
+          </div>
         </div>
       </div>
 
       <nav className="p-3">
+        {role === 'staff' && (
+          <div className="mb-3 rounded-lg bg-blue-50 border border-blue-200 p-3">
+            <div className="text-xs font-semibold text-blue-700 mb-1">Staff Admin Role</div>
+            <div className="text-[10px] text-blue-600">
+              You can add materials and schedules but cannot edit/delete existing content or manage users.
+            </div>
+          </div>
+        )}
+        
         <ul className="space-y-1">
           {nav.map((item) => (
             <li key={item.to}>

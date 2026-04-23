@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import { requireAdminForAppDataKey, requireAdminRole } from '../middleware/adminAuth.js';
+import { requireAdminForAppDataKey, requireAdminRole, requirePermission } from '../middleware/adminAuth.js';
 import {
   createStudentByAdmin,
   createStaffUser,
+  editStaffUser,
+  deleteStaffUser,
   getAdminMetrics,
   getAppDataByKey,
   listAdminUsers,
@@ -21,18 +23,22 @@ export const adminRouter = Router();
 
 adminRouter.get('/metrics', requireAdminRole(['superadmin', 'staff']), getAdminMetrics);
 
-// Admin users (superadmin only)
-adminRouter.get('/users', requireAdminRole('superadmin'), listAdminUsers);
-adminRouter.post('/users', requireAdminRole('superadmin'), createStaffUser);
+// Admin user management (superadmin only)
+adminRouter.get('/users', requirePermission('VIEW_ANALYTICS'), listAdminUsers);
+adminRouter.post('/users', requirePermission('CREATE_STAFF_ADMIN'), createStaffUser);
+adminRouter.put('/users/:id', requirePermission('EDIT_STAFF_ADMIN'), editStaffUser);
+adminRouter.delete('/users/:id', requirePermission('DELETE_STAFF_ADMIN'), deleteStaffUser);
 
-adminRouter.get('/students', requireAdminRole(['superadmin', 'staff']), listStudents);
-adminRouter.post('/students', requireAdminRole(['superadmin', 'staff']), createStudentByAdmin);
+// Student management (both roles can view and create)
+adminRouter.get('/students', requirePermission('VIEW_STUDENTS'), listStudents);
+adminRouter.post('/students', requirePermission('CREATE_STUDENT'), createStudentByAdmin);
 
+// App data management with enhanced permissions
 adminRouter.get('/app-data/keys', requireAdminRole('superadmin'), listAppDataKeys);
 adminRouter.get('/app-data/:key', requireAdminForAppDataKey({ mode: 'read' }), getAppDataByKey);
 adminRouter.put('/app-data/:key', requireAdminForAppDataKey({ mode: 'write' }), upsertAppDataByKey);
 
-// Academics (cascading select options)
+// Academic hierarchy management (superadmin only for management, staff can view)
 adminRouter.get('/academics/faculties', requireAdminRole(['superadmin', 'staff']), listFaculties);
 adminRouter.get('/academics/programs', requireAdminRole(['superadmin', 'staff']), listPrograms);
 adminRouter.get('/academics/intakes', requireAdminRole(['superadmin', 'staff']), listIntakes);

@@ -10,6 +10,7 @@ import AdminFacultiesPage from './admin/pages/AdminFacultiesPage.jsx';
 import AdminProgramsPage from './admin/pages/AdminProgramsPage.jsx';
 import AdminIntakesPage from './admin/pages/AdminIntakesPage.jsx';
 import AdminBatchStudentsPage from './admin/pages/AdminBatchStudentsPage.jsx';
+import AdminMaterialUploadPage from './admin/pages/AdminMaterialUploadPage.jsx';
 import StudentLayout from './layouts/StudentLayout.jsx';
 import CoursesPage from './pages/CoursesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -75,6 +76,7 @@ export default function App() {
           {/* Content manager removed; keep a redirect for any old bookmarks */}
           <Route path="content" element={<Navigate to="/admin" replace />} />
           <Route path="schedule" element={<AdminScheduleLecturePage />} />
+          <Route path="materials/upload" element={<AdminMaterialUploadPage />} />
         </Route>
 
         {/* Student */}

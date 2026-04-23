@@ -13,6 +13,7 @@ import { adminAuthRouter } from './routes/adminAuth.routes.js';
 import { adminRouter } from './routes/admin.routes.js';
 import { entitiesRouter } from './routes/entities.routes.js';
 import { lmsRouter } from './routes/lms.routes.js';
+import materialsRouter from './routes/materials.routes.js';
 
 export function createServer() {
   const app = express();
@@ -59,8 +60,11 @@ export function createServer() {
   app.use('/api/admin/auth', adminAuthRouter);
   app.use('/api/admin', requireAdmin, adminRouter);
 
-  // Generic hierarchical management (admin-only)
+  // Generic hierarchical management (superadmin only for management)
   app.use('/api/entities', requireAdmin, requireAdminRole('superadmin'), entitiesRouter);
+
+  // Materials management (branch-intake-batch hierarchy)
+  app.use('/api/materials', materialsRouter);
 
   app.use('/api', requireAuth, lmsRouter);
 
