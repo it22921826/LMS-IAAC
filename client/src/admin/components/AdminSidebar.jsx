@@ -12,7 +12,7 @@ const NAV = [
   { label: 'Dashboard', to: '/admin', icon: LayoutDashboard },
   { label: 'Users', to: '/admin/users', icon: Users, superAdminOnly: true },
   { label: 'Students', to: '/admin/students', icon: GraduationCap },
-  { label: 'Course Overview', to: '/admin/faculties', icon: BookOpen, superAdminOnly: true },
+  { label: 'Course Overview', to: '/admin/course-overview', icon: BookOpen, superAdminOnly: true },
   { label: 'Upload Materials', to: '/admin/materials/upload', icon: Upload },
   { label: 'Class Schedule', to: '/admin/schedule', icon: Calendar },
 ];
@@ -21,6 +21,9 @@ export default function AdminSidebar({ admin }) {
   const location = useLocation();
   const role = admin?.role || 'superadmin';
   const nav = NAV.filter((item) => !item.superAdminOnly || role === 'superadmin');
+
+  const limitedRole = role === 'staff' || role === 'lecturer';
+  const roleLabel = role === 'superadmin' ? 'Super Admin' : role === 'lecturer' ? 'Lecturer' : 'Staff Admin';
 
   return (
     <aside className="hidden min-h-screen w-64 shrink-0 border-r border-slate-200 bg-white md:block">
@@ -36,15 +39,15 @@ export default function AdminSidebar({ admin }) {
               ? 'bg-purple-100 text-purple-700' 
               : 'bg-blue-100 text-blue-700'
           }`}>
-            {role === 'superadmin' ? 'Super Admin' : 'Staff Admin'}
+            {roleLabel}
           </div>
         </div>
       </div>
 
       <nav className="p-3">
-        {role === 'staff' && (
+        {limitedRole && (
           <div className="mb-3 rounded-lg bg-blue-50 border border-blue-200 p-3">
-            <div className="text-xs font-semibold text-blue-700 mb-1">Staff Admin Role</div>
+            <div className="text-xs font-semibold text-blue-700 mb-1">Limited Role</div>
             <div className="text-[10px] text-blue-600">
               You can add materials and schedules but cannot edit/delete existing content or manage users.
             </div>

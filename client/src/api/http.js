@@ -86,7 +86,7 @@ export async function apiGet(path) {
   const baseUrl = await resolveApiBaseUrl();
   let res;
   try {
-    res = await fetch(`${baseUrl}${path}`, { credentials: 'include' });
+    res = await fetch(`${baseUrl}${path}`, { credentials: 'include', cache: 'no-store' });
   } catch {
     throw new ApiError('Network error', 0);
   }

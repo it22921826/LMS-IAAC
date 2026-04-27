@@ -86,8 +86,14 @@ export async function listAdminUsers(req, res, next) {
 
 export async function createStaffUser(req, res, next) {
   try {
-    const { name, email, password } = req.body || {};
+    const { name, email, password, role } = req.body || {};
     const normalizedEmail = normalizeEmail(email);
+
+    const requestedRole = String(role || 'staff').trim().toLowerCase();
+    const allowedRoles = new Set(['staff', 'lecturer']);
+    if (!allowedRoles.has(requestedRole)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
 
     if (!safeTrim(name)) return res.status(400).json({ message: 'Name is required' });
     if (!isValidEmail(normalizedEmail)) return res.status(400).json({ message: 'Valid email is required' });
@@ -103,14 +109,15 @@ export async function createStaffUser(req, res, next) {
       name: safeTrim(name),
       email: normalizedEmail,
       passwordHash,
-      role: 'staff',
+      role: requestedRole,
     });
 
     // Log the action
     await logAdminAction(req.adminAuth?.id, 'CREATE_STAFF_ADMIN', {
       staffAdminId: created._id,
       staffAdminEmail: normalizedEmail,
-      staffAdminName: safeTrim(name)
+      staffAdminName: safeTrim(name),
+      role: requestedRole,
     });
 
     res.status(201).json({ user: toAdminListItem(created) });
@@ -342,7 +349,7 @@ export async function deleteStaffUser(req, res, next) {
       staffAdminName: admin.name
     });
 
-    res.json({ message: 'Staff admin deleted successfully' });
+    res.json({ message: 'Admin account deleted successfully' });
   } catch (err) {
     next(err);
   }

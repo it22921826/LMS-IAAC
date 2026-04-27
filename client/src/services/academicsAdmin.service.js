@@ -1,6 +1,6 @@
 import { apiGet, apiPut } from '../api/http';
 
-const EMPTY_ACADEMICS = { faculties: [] };
+const EMPTY_ACADEMICS = { branches: [], faculties: [] };
 
 export async function getAcademics() {
   try {

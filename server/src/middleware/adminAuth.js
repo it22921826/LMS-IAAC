@@ -103,8 +103,8 @@ export function requireAdminForAppDataKey(options = {}) {
       return next();
     }
 
-    // Staff permissions for app data
-    if (role === 'staff') {
+    // Limited-role permissions for app data
+    if (role === 'staff' || role === 'lecturer') {
       // Staff can add/read materials and schedule
       const allowedKeys = ['materials', 'schedule'];
       
@@ -138,7 +138,7 @@ export function requirePermission(action) {
       return next();
     }
 
-    if (role === 'staff') {
+    if (role === 'staff' || role === 'lecturer') {
       if (isStaffAllowedAction(action)) {
         logAdminAction(adminId, action, { role });
         return next();

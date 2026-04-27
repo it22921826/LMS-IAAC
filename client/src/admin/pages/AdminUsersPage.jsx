@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
 
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'staff' });
 
   // Edit functionality
   const [editing, setEditing] = useState(null);
@@ -57,14 +57,14 @@ export default function AdminUsersPage() {
 
     apiPost('/api/admin/users', form)
       .then(() => {
-        setForm({ name: '', email: '', password: '' });
+        setForm({ name: '', email: '', password: '', role: 'staff' });
         load();
       })
       .catch((e) => {
         if (e instanceof ApiError && e.status === 403) {
-          setCreateError("You don't have permission to create staff users. Please contact your super admin.");
+          setCreateError("You don't have permission to create admin accounts. Please contact your super admin.");
         } else {
-          setCreateError(e?.message || 'Failed to create staff user.');
+          setCreateError(e?.message || 'Failed to create account.');
         }
       })
       .finally(() => setCreating(false));
@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
       load();
     } catch (e) {
       if (e instanceof ApiError && e.status === 403) {
-        setEditError("You don't have permission to edit staff users. Please contact your super admin.");
+        setEditError("You don't have permission to edit admin accounts. Please contact your super admin.");
       } else {
         setEditError(e?.message || 'Failed to update user.');
       }
@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
   };
 
   const onDelete = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this staff user? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to delete this account? This action cannot be undone.')) {
       return;
     }
 
@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
       load();
     } catch (e) {
       if (e instanceof ApiError && e.status === 403) {
-        setDeleteError("You don't have permission to delete staff users. Please contact your super admin.");
+        setDeleteError("You don't have permission to delete admin accounts. Please contact your super admin.");
       } else {
         setDeleteError(e?.message || 'Failed to delete user.');
       }
@@ -144,9 +144,9 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="text-sm font-bold text-slate-900">Create staff user</div>
+        <div className="text-sm font-bold text-slate-900">Create account</div>
         <p className="mt-1 text-sm text-slate-600">
-          Staff can access the admin portal with limited permissions: they can add materials and schedules but cannot edit, delete, or manage users.
+          Create Staff Admin or Lecturer accounts. Both have limited permissions: they can add materials and schedules but cannot edit, delete, or manage users.
         </p>
 
         {createError ? (
@@ -156,6 +156,19 @@ export default function AdminUsersPage() {
         ) : null}
 
         <form className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2" onSubmit={onCreate}>
+          <div>
+            <label className="text-xs font-semibold text-slate-600">Account type *</label>
+            <select
+              value={form.role}
+              onChange={update('role')}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              required
+            >
+              <option value="staff">Staff Admin</option>
+              <option value="lecturer">Lecturer</option>
+            </select>
+          </div>
+
           <div>
             <label className="text-xs font-semibold text-slate-600">Full name *</label>
             <input
@@ -195,7 +208,7 @@ export default function AdminUsersPage() {
               disabled={creating}
               className="inline-flex items-center justify-center rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-800 disabled:opacity-60"
             >
-              {creating ? 'Creating…' : 'Create staff user'}
+              {creating ? 'Creating…' : 'Create account'}
             </button>
           </div>
         </form>
@@ -240,12 +253,12 @@ export default function AdminUsersPage() {
                           ? 'bg-purple-100 text-purple-700' 
                           : 'bg-blue-100 text-blue-700'
                       }`}>
-                        {u.role}
+                        {u.role === 'staff' ? 'staff' : u.role === 'lecturer' ? 'lecturer' : u.role}
                       </span>
                     </td>
                     <td className="py-3 text-xs text-slate-500">{formatDate(u.createdAt)}</td>
                     <td className="py-3 text-right">
-                      {u.role === 'staff' && (
+                      {u.role !== 'superadmin' && (
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => startEdit(u)}
@@ -282,7 +295,7 @@ export default function AdminUsersPage() {
       {editing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-slate-900 mb-4">Edit Staff User</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-4">Edit Account</h3>
             
             {editError && (
               <div className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">

@@ -3,6 +3,21 @@ import { Student } from '../models/Student.js';
 import { getOrCreateAppDataPayload } from '../services/appData.service.js';
 import { logAdminAction } from '../middleware/adminAuth.js';
 
+function normalizeId(value) {
+  if (value == null) return '';
+  return String(value);
+}
+
+function normalizeName(value) {
+  return typeof value === 'string' ? value : '';
+}
+
+function toOption(node) {
+  const id = normalizeId(node?.id || node?._id || node?.key || node?.code || node?.name);
+  const name = normalizeName(node?.name || node?.title || node?.label);
+  return { id, name };
+}
+
 // Validation helpers
 function validateMaterialTitle(title) {
   if (!title || typeof title !== 'string') {
@@ -82,10 +97,7 @@ export async function getBranches(req, res, next) {
     const branches = Array.isArray(payload?.branches) ? payload.branches : [];
     
     res.json({ 
-      branches: branches.map(branch => ({
-        id: branch.id,
-        name: branch.name
-      }))
+      branches: branches.map((b) => toOption(b)).filter((b) => b.id && b.name)
     });
   } catch (err) {
     next(err);
@@ -104,7 +116,9 @@ export async function getIntakes(req, res, next) {
     const payload = await getOrCreateAppDataPayload('academics', { branches: [] });
     const branches = Array.isArray(payload?.branches) ? payload.branches : [];
     
-    const branch = branches.find(b => b.id === branchId);
+    const branch = branches.find(
+      (b) => normalizeId(b?.id || b?._id || b?.key || b?.code || b?.name) === normalizeId(branchId)
+    );
     if (!branch) {
       return res.status(404).json({ message: 'Branch not found' });
     }
@@ -112,10 +126,7 @@ export async function getIntakes(req, res, next) {
     const intakes = Array.isArray(branch.intakes) ? branch.intakes : [];
     
     res.json({ 
-      intakes: intakes.map(intake => ({
-        id: intake.id,
-        name: intake.name
-      }))
+      intakes: intakes.map((i) => toOption(i)).filter((i) => i.id && i.name)
     });
   } catch (err) {
     next(err);
@@ -134,13 +145,17 @@ export async function getBatches(req, res, next) {
     const payload = await getOrCreateAppDataPayload('academics', { branches: [] });
     const branches = Array.isArray(payload?.branches) ? payload.branches : [];
     
-    const branch = branches.find(b => b.id === branchId);
+    const branch = branches.find(
+      (b) => normalizeId(b?.id || b?._id || b?.key || b?.code || b?.name) === normalizeId(branchId)
+    );
     if (!branch) {
       return res.status(404).json({ message: 'Branch not found' });
     }
     
     const intakes = Array.isArray(branch.intakes) ? branch.intakes : [];
-    const intake = intakes.find(i => i.id === intakeId);
+    const intake = intakes.find(
+      (i) => normalizeId(i?.id || i?._id || i?.key || i?.code || i?.name) === normalizeId(intakeId)
+    );
     if (!intake) {
       return res.status(404).json({ message: 'Intake not found' });
     }
@@ -148,11 +163,7 @@ export async function getBatches(req, res, next) {
     const batches = Array.isArray(intake.batches) ? intake.batches : [];
     
     res.json({ 
-      batches: batches.map(batch => ({
-        id: batch.id,
-        name: batch.name,
-        studentCount: batch.studentCount || 0
-      }))
+      batches: batches.map((b) => ({ ...toOption(b), studentCount: Number(b?.studentCount || 0) }))
     });
   } catch (err) {
     next(err);
@@ -234,7 +245,7 @@ export async function uploadMaterial(req, res, next) {
 export async function getStudentMaterials(req, res, next) {
   try {
     // Get current student from auth
-    const studentId = req.user?.id; // Assumes student auth middleware sets req.user
+    const studentId = req.auth?.sub;
     if (!studentId) {
       return res.status(401).json({ message: 'Student authentication required' });
     }
@@ -309,7 +320,7 @@ export async function getStudentMaterials(req, res, next) {
 export async function downloadMaterial(req, res, next) {
   try {
     const { materialId } = req.params;
-    const studentId = req.user?.id;
+    const studentId = req.auth?.sub;
     
     if (!studentId) {
       return res.status(401).json({ message: 'Student authentication required' });

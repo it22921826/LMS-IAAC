@@ -6,11 +6,13 @@ import AdminLoginPage from './admin/pages/AdminLoginPage.jsx';
 import AdminScheduleLecturePage from './admin/pages/AdminScheduleLecturePage.jsx';
 import AdminStudentsPage from './admin/pages/AdminStudentsPage.jsx';
 import AdminUsersPage from './admin/pages/AdminUsersPage.jsx';
-import AdminFacultiesPage from './admin/pages/AdminFacultiesPage.jsx';
 import AdminProgramsPage from './admin/pages/AdminProgramsPage.jsx';
 import AdminIntakesPage from './admin/pages/AdminIntakesPage.jsx';
 import AdminBatchStudentsPage from './admin/pages/AdminBatchStudentsPage.jsx';
 import AdminMaterialUploadPage from './admin/pages/AdminMaterialUploadPage.jsx';
+import AdminBranchesPage from './admin/pages/AdminBranchesPage.jsx';
+import AdminBranchIntakesPage from './admin/pages/AdminBranchIntakesPage.jsx';
+import AdminBranchBatchesPage from './admin/pages/AdminBranchBatchesPage.jsx';
 import StudentLayout from './layouts/StudentLayout.jsx';
 import CoursesPage from './pages/CoursesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -32,6 +34,7 @@ export default function App() {
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
+          <Route path="course-overview" element={<Navigate to="/admin/branches" replace />} />
           <Route
             path="users"
             element={
@@ -42,12 +45,32 @@ export default function App() {
           />
           <Route path="students" element={<AdminStudentsPage />} />
           <Route
-            path="faculties"
+            path="branches"
             element={
               <RequireAdminRole allow="superadmin">
-                <AdminFacultiesPage />
+                <AdminBranchesPage />
               </RequireAdminRole>
             }
+          />
+          <Route
+            path="branches/:branchId/intakes"
+            element={
+              <RequireAdminRole allow="superadmin">
+                <AdminBranchIntakesPage />
+              </RequireAdminRole>
+            }
+          />
+          <Route
+            path="branches/:branchId/intakes/:intakeId/batches"
+            element={
+              <RequireAdminRole allow="superadmin">
+                <AdminBranchBatchesPage />
+              </RequireAdminRole>
+            }
+          />
+          <Route
+            path="faculties"
+            element={<Navigate to="/admin/branches" replace />}
           />
           <Route
             path="faculties/:facultyId/programs"

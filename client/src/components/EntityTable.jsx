@@ -1,4 +1,4 @@
-import { Inbox, Pencil, Plus, Eye } from 'lucide-react';
+import { Inbox, Pencil, Plus, Eye, Trash2 } from 'lucide-react';
 
 /**
  * EntityTable
@@ -6,7 +6,7 @@ import { Inbox, Pencil, Plus, Eye } from 'lucide-react';
  * - title: string
  * - data: array
  * - columns: [{ header: string, key?: string, render?: (row) => ReactNode, className?: string }]
- * - onAction: { onView?: (row) => void, onEdit?: (row) => void, onAddNew?: () => void }
+ * - onAction: { onView?: (row) => void, onEdit?: (row) => void, onDelete?: (row) => void, onAddNew?: () => void }
  * - empty: { title?: string, description?: string, addLabel?: string }
  */
 export default function EntityTable({ title, data, columns, onAction, empty }) {
@@ -105,6 +105,16 @@ export default function EntityTable({ title, data, columns, onAction, empty }) {
                       >
                         <Pencil className="h-4 w-4" />
                         Edit
+                      </button>
+                    ) : null}
+                    {onAction?.onDelete ? (
+                      <button
+                        type="button"
+                        onClick={() => onAction.onDelete(row)}
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-slate-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete
                       </button>
                     ) : null}
                   </div>

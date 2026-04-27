@@ -58,6 +58,42 @@ async function resolveInvite(intakeId, inviteToken) {
   return { error: 'Invalid batch link' };
 }
 
+async function resolveBranchEnrollment(branchId, intakeId, batchId) {
+  const safeBranchId = normalizeId(branchId).trim();
+  const safeIntakeId = normalizeId(intakeId).trim();
+  const safeBatchId = normalizeId(batchId).trim();
+
+  if (!safeBranchId || !safeIntakeId || !safeBatchId) {
+    return { error: 'Branch, intake, and batch are required' };
+  }
+
+  const payload = await getOrCreateAppDataPayload('academics', { branches: [] });
+  const branches = Array.isArray(payload?.branches) ? payload.branches : [];
+
+  const normalizedBranchId = normalizeId(safeBranchId);
+  const normalizedIntakeId = normalizeId(safeIntakeId);
+  const normalizedBatchId = normalizeId(safeBatchId);
+
+  const branch = branches.find(
+    (b) => normalizeId(b?.id || b?._id || b?.key || b?.code || b?.name) === normalizedBranchId
+  );
+  if (!branch) return { error: 'Invalid registration link' };
+
+  const intakes = Array.isArray(branch?.intakes) ? branch.intakes : [];
+  const intake = intakes.find(
+    (i) => normalizeId(i?.id || i?._id || i?.key || i?.code || i?.name) === normalizedIntakeId
+  );
+  if (!intake) return { error: 'Invalid registration link' };
+
+  const batches = Array.isArray(intake?.batches) ? intake.batches : [];
+  const batch = batches.find(
+    (b) => normalizeId(b?.id || b?._id || b?.key || b?.code || b?.name) === normalizedBatchId
+  );
+  if (!batch) return { error: 'Invalid registration link' };
+
+  return { branchId: safeBranchId, intakeId: safeIntakeId, batchId: safeBatchId };
+}
+
 function toMePayload(student) {
   const fullName = student.fullName;
   const firstName = fullName.split(' ')[0] || fullName;
@@ -75,6 +111,9 @@ function toMePayload(student) {
     address: student.address,
     guardianName: student.guardianName,
     guardianPhoneNumber: student.guardianPhoneNumber,
+
+    branchId: student.branchId,
+    batchId: student.batchId,
 
     facultyId: student.facultyId,
     programId: student.programId,
@@ -96,6 +135,8 @@ export async function registerStudent(req, res, next) {
       guardianName,
       guardianPhoneNumber,
       password,
+      branchId,
+      batchId,
       intakeId,
       inviteToken,
     } = req.body || {};
@@ -125,9 +166,23 @@ export async function registerStudent(req, res, next) {
 
     const passwordHash = await bcrypt.hash(password.trim(), 12);
 
-    const invite = await resolveInvite(intakeId, inviteToken);
-    if (invite?.error) {
-      return res.status(400).json({ message: invite.error });
+    const wantsLegacyInvite = isNonEmptyString(inviteToken);
+    const wantsBranchEnrollment = isNonEmptyString(branchId) || isNonEmptyString(batchId);
+
+    let association = null;
+
+    if (wantsLegacyInvite) {
+      const invite = await resolveInvite(intakeId, inviteToken);
+      if (invite?.error) {
+        return res.status(400).json({ message: invite.error });
+      }
+      association = invite;
+    } else if (wantsBranchEnrollment) {
+      const enrollment = await resolveBranchEnrollment(branchId, intakeId, batchId);
+      if (enrollment?.error) {
+        return res.status(400).json({ message: enrollment.error });
+      }
+      association = enrollment;
     }
 
     const created = await Student.create({
@@ -141,7 +196,7 @@ export async function registerStudent(req, res, next) {
       address: safeTrim(address),
       guardianName: safeTrim(guardianName),
       guardianPhoneNumber: safeTrim(guardianPhoneNumber),
-      ...(invite ? invite : {}),
+      ...(association ? association : {}),
       passwordHash,
     });
 

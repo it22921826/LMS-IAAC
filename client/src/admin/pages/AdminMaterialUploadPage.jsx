@@ -37,6 +37,23 @@ export default function AdminMaterialUploadPage() {
     loadBranches();
   }, []);
 
+  // Re-fetch branches when returning to this tab/page
+  useEffect(() => {
+    const refreshIfVisible = () => {
+      if (step !== 1) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+      loadBranches();
+    };
+
+    window.addEventListener('focus', refreshIfVisible);
+    document.addEventListener('visibilitychange', refreshIfVisible);
+
+    return () => {
+      window.removeEventListener('focus', refreshIfVisible);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+    };
+  }, [step]);
+
   // Load intakes when branch changes
   useEffect(() => {
     if (selectedBranch) {
@@ -59,6 +76,7 @@ export default function AdminMaterialUploadPage() {
 
   const loadBranches = async () => {
     setLoading(true);
+    setError('');
     try {
       const response = await apiGet('/api/materials/hierarchy');
       setBranches(response.branches || []);
