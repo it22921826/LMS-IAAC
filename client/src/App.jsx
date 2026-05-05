@@ -14,6 +14,7 @@ import AdminBranchesPage from './admin/pages/AdminBranchesPage.jsx';
 import AdminBranchIntakesPage from './admin/pages/AdminBranchIntakesPage.jsx';
 import AdminBranchBatchesPage from './admin/pages/AdminBranchBatchesPage.jsx';
 import StudentLayout from './layouts/StudentLayout.jsx';
+import LecturerLayout from './layouts/LecturerLayout.jsx';
 import CoursesPage from './pages/CoursesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import HelpDeskPage from './pages/HelpDeskPage.jsx';
@@ -25,6 +26,11 @@ import RecordingsPage from './pages/RecordingsPage.jsx';
 import SchedulePage from './pages/SchedulePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
+import LecturerDashboardPage from './pages/lecturer/LecturerDashboardPage.jsx';
+import LecturerChangePasswordPage from './pages/lecturer/LecturerChangePasswordPage.jsx';
+import LecturerSchedulePage from './pages/lecturer/LecturerSchedulePage.jsx';
+import LecturerRecordingsPage from './pages/lecturer/LecturerRecordingsPage.jsx';
+import LecturerKnowledgeHubPage from './pages/lecturer/LecturerKnowledgeHubPage.jsx';
 
 export default function App() {
   return (
@@ -105,6 +111,17 @@ export default function App() {
         {/* Student */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* Lecturer */}
+        <Route path="/lecturer/change-password" element={<LecturerChangePasswordPage />} />
+        <Route path="/lecturer" element={<LecturerLayout />}>
+          <Route index element={<Navigate to="/lecturer/dashboard" replace />} />
+          <Route path="dashboard" element={<LecturerDashboardPage />} />
+          <Route path="schedule" element={<LecturerSchedulePage />} />
+          <Route path="recordings" element={<LecturerRecordingsPage />} />
+          <Route path="knowledge-hub" element={<LecturerKnowledgeHubPage />} />
+          <Route path="*" element={<Navigate to="/lecturer/dashboard" replace />} />
+        </Route>
 
         <Route element={<StudentLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />

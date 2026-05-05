@@ -128,6 +128,23 @@ export async function apiPut(path, body) {
   return res.json();
 }
 
+export async function apiPatch(path, body) {
+  const baseUrl = await resolveApiBaseUrl();
+  let res;
+  try {
+    res = await fetch(`${baseUrl}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body ?? {}),
+    });
+  } catch {
+    throw new ApiError('Network error', 0);
+  }
+  if (!res.ok) throw new ApiError(await readErrorMessage(res), res.status);
+  return res.json();
+}
+
 export async function apiDelete(path) {
   const baseUrl = await resolveApiBaseUrl();
   let res;

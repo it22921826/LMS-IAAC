@@ -38,6 +38,13 @@ export function requireAuth(req, res, next) {
   }
 }
 
+export function requireLecturer(req, res, next) {
+  if (req.auth?.role !== 'lecturer') {
+    return res.status(403).json({ message: 'Lecturer access required' });
+  }
+  return next();
+}
+
 export function setAuthCookie(res, token) {
   const isProd = process.env.NODE_ENV === 'production';
   res.cookie(COOKIE_NAME, token, {

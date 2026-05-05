@@ -16,7 +16,36 @@ export default function AdminUsersPage() {
 
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'staff' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'staff', branchId: '', intakeId: '', batchId: '' });
+
+  // Cascading dropdowns for lecturer assignment
+  const [branches, setBranches]   = useState([]);
+  const [intakes, setIntakes]     = useState([]);
+  const [batches, setBatches]     = useState([]);
+
+  useEffect(() => {
+    apiGet('/api/materials/hierarchy')
+      .then((d) => setBranches(Array.isArray(d?.branches) ? d.branches : []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setIntakes([]); setBatches([]);
+    setForm((f) => ({ ...f, intakeId: '', batchId: '' }));
+    if (!form.branchId) return;
+    apiGet(`/api/materials/branches/${encodeURIComponent(form.branchId)}/intakes`)
+      .then((d) => setIntakes(Array.isArray(d?.intakes) ? d.intakes : []))
+      .catch(() => {});
+  }, [form.branchId]); // eslint-disable-line
+
+  useEffect(() => {
+    setBatches([]);
+    setForm((f) => ({ ...f, batchId: '' }));
+    if (!form.branchId || !form.intakeId) return;
+    apiGet(`/api/materials/branches/${encodeURIComponent(form.branchId)}/intakes/${encodeURIComponent(form.intakeId)}/batches`)
+      .then((d) => setBatches(Array.isArray(d?.batches) ? d.batches : []))
+      .catch(() => {});
+  }, [form.intakeId]); // eslint-disable-line
 
   // Edit functionality
   const [editing, setEditing] = useState(null);
@@ -55,9 +84,11 @@ export default function AdminUsersPage() {
     setCreating(true);
     setCreateError('');
 
-    apiPost('/api/admin/users', form)
+    const payload = { ...form };
+    if (form.role === 'lecturer') payload.mustChangePassword = true;
+    apiPost('/api/admin/users', payload)
       .then(() => {
-        setForm({ name: '', email: '', password: '', role: 'staff' });
+        setForm({ name: '', email: '', password: '', role: 'staff', branchId: '', intakeId: '', batchId: '' });
         load();
       })
       .catch((e) => {
@@ -201,6 +232,32 @@ export default function AdminUsersPage() {
               required
             />
           </div>
+
+          {form.role === 'lecturer' && (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-slate-600">Branch *</label>
+                <select value={form.branchId} onChange={update('branchId')} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" required>
+                  <option value="">Select branch</option>
+                  {branches.map((b) => <option key={b.id ?? b.name} value={b.id ?? b.name}>{b.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600">Intake *</label>
+                <select value={form.intakeId} onChange={update('intakeId')} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" required disabled={!form.branchId}>
+                  <option value="">Select intake</option>
+                  {intakes.map((i) => <option key={i.id ?? i.name} value={i.id ?? i.name}>{i.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600">Batch *</label>
+                <select value={form.batchId} onChange={update('batchId')} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" required disabled={!form.intakeId}>
+                  <option value="">Select batch</option>
+                  {batches.map((b) => <option key={b.id ?? b.name} value={b.id ?? b.name}>{b.name}</option>)}
+                </select>
+              </div>
+            </>
+          )}
 
           <div className="md:col-span-2">
             <button

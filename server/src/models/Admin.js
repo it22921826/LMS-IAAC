@@ -21,6 +21,10 @@ const AdminSchema = new Schema(
       enum: ['superadmin', 'staff', 'lecturer'],
       default: 'staff',
     },
+    branchId: { type: String, trim: true, default: '' },
+    intakeId: { type: String, trim: true, default: '' },
+    batchId:  { type: String, trim: true, default: '' },
+    mustChangePassword: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -16,7 +16,17 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
     apiPost('/api/auth/login', { identifier, password })
-      .then(() => navigate('/dashboard', { replace: true }))
+      .then((data) => {
+        if (data?.lecturer) {
+          if (data.mustChangePassword) {
+            navigate('/lecturer/change-password', { replace: true });
+          } else {
+            navigate('/lecturer/dashboard', { replace: true });
+          }
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+      })
       .catch((err) => setError(err))
       .finally(() => setSubmitting(false));
   };

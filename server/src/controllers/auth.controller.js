@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { Student } from '../models/Student.js';
+import { Admin } from '../models/Admin.js';
 import { clearAuthCookie, setAuthCookie, signAuthToken } from '../middleware/auth.js';
 import { DEFAULT_LMS_DATA } from '../data/defaultLmsData.js';
 import { getOrCreateAppDataPayload } from '../services/appData.service.js';
@@ -121,6 +122,17 @@ function toMePayload(student) {
   };
 }
 
+function toLecturerPayload(lecturer) {
+  return {
+    id: String(lecturer._id),
+    name: lecturer.name,
+    email: lecturer.email,
+    branchId: lecturer.branchId || '',
+    subject: lecturer.subject || '',
+    role: 'lecturer',
+  };
+}
+
 export async function registerStudent(req, res, next) {
   try {
     const {
@@ -223,23 +235,36 @@ export async function loginStudent(req, res, next) {
     const id = identifier.trim();
     const normalizedEmail = normalizeEmail(id);
 
+    // --- Check student first ---
     const student = await Student.findOne({
       $or: [{ email: normalizedEmail }, { studentId: id }],
     });
 
-    if (!student) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (student) {
+      const ok = await bcrypt.compare(password.trim(), student.passwordHash);
+      if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+
+      const token = signAuthToken({ sub: String(student._id), role: 'student' });
+      setAuthCookie(res, token);
+      return res.json({ student: toMePayload(student) });
     }
 
-    const ok = await bcrypt.compare(password.trim(), student.passwordHash);
-    if (!ok) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    // --- Check lecturer ---
+    const lecturer = await Admin.findOne({ email: normalizedEmail, role: 'lecturer' });
+
+    if (lecturer) {
+      const ok = await bcrypt.compare(password.trim(), lecturer.passwordHash);
+      if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
+
+      const token = signAuthToken({ sub: String(lecturer._id), role: 'lecturer' });
+      setAuthCookie(res, token);
+      return res.json({
+        lecturer: toLecturerPayload(lecturer),
+        mustChangePassword: lecturer.mustChangePassword === true,
+      });
     }
 
-    const token = signAuthToken({ sub: String(student._id) });
-    setAuthCookie(res, token);
-
-    return res.json({ student: toMePayload(student) });
+    return res.status(401).json({ message: 'Invalid credentials' });
   } catch (err) {
     next(err);
   }
@@ -256,13 +281,42 @@ export async function logoutStudent(req, res, next) {
 
 export async function getAuthMe(req, res, next) {
   try {
-    const studentId = req.auth?.sub;
-    if (!studentId) return res.status(401).json({ message: 'Unauthorized' });
+    const id = req.auth?.sub;
+    const role = req.auth?.role;
+    if (!id) return res.status(401).json({ message: 'Unauthorized' });
 
-    const student = await Student.findById(studentId).lean();
+    if (role === 'lecturer') {
+      const lecturer = await Admin.findById(id).lean();
+      if (!lecturer || lecturer.role !== 'lecturer') {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      return res.json({ ...toLecturerPayload(lecturer), role: 'lecturer' });
+    }
+
+    const student = await Student.findById(id).lean();
     if (!student) return res.status(401).json({ message: 'Unauthorized' });
 
     res.json(toMePayload(student));
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function changeLecturerPassword(req, res, next) {
+  try {
+    const id = req.auth?.sub;
+    const role = req.auth?.role;
+    if (!id || role !== 'lecturer') return res.status(403).json({ message: 'Forbidden' });
+
+    const { newPassword } = req.body || {};
+    if (!isNonEmptyString(newPassword) || newPassword.trim().length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword.trim(), 12);
+    await Admin.findByIdAndUpdate(id, { passwordHash, mustChangePassword: false });
+
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

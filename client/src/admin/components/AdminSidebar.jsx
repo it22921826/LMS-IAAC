@@ -4,7 +4,8 @@ import {
   LayoutDashboard,
   Users,
   GraduationCap,
-  Upload,
+  Video,
+  Library,
 } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 
@@ -13,8 +14,9 @@ const NAV = [
   { label: 'Users', to: '/admin/users', icon: Users, superAdminOnly: true },
   { label: 'Students', to: '/admin/students', icon: GraduationCap },
   { label: 'Course Overview', to: '/admin/course-overview', icon: BookOpen, superAdminOnly: true },
-  { label: 'Upload Materials', to: '/admin/materials/upload', icon: Upload },
   { label: 'Class Schedule', to: '/admin/schedule', icon: Calendar },
+  { label: 'Recordings', to: '/admin/recordings', icon: Video, superAdminOnly: true },
+  { label: 'Knowledge Hub', to: '/admin/knowledge-hub', icon: Library, superAdminOnly: true },
 ];
 
 export default function AdminSidebar({ admin }) {

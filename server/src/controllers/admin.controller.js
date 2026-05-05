@@ -86,7 +86,7 @@ export async function listAdminUsers(req, res, next) {
 
 export async function createStaffUser(req, res, next) {
   try {
-    const { name, email, password, role } = req.body || {};
+    const { name, email, password, role, branchId, intakeId, batchId, mustChangePassword } = req.body || {};
     const normalizedEmail = normalizeEmail(email);
 
     const requestedRole = String(role || 'staff').trim().toLowerCase();
@@ -110,6 +110,10 @@ export async function createStaffUser(req, res, next) {
       email: normalizedEmail,
       passwordHash,
       role: requestedRole,
+      branchId: typeof branchId === 'string' ? branchId.trim() : '',
+      intakeId: typeof intakeId === 'string' ? intakeId.trim() : '',
+      batchId:  typeof batchId  === 'string' ? batchId.trim()  : '',
+      mustChangePassword: mustChangePassword === true,
     });
 
     // Log the action

@@ -1,6 +1,5 @@
 import { 
   LayoutDashboard, 
-  FileText, 
   Library, 
   Calendar, 
   Video, 
@@ -8,10 +7,10 @@ import {
   LogOut 
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import logo from '../image/logo.png';
 
 const NAV_LINKS = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
-  { label: 'Study Materials', icon: FileText, to: '/materials' },
   { label: 'Knowledge Hub', icon: Library, to: '/knowledge-hub' },
   { label: 'Class Schedule', icon: Calendar, to: '/schedule' },
   { label: 'Recordings', icon: Video, to: '/recordings' },
@@ -24,14 +23,8 @@ export default function TopNavbar({ student, onLogout }) {
         <div className="flex h-16 items-center justify-between">
           
           {/* 1. Branding Section */}
-          <div className="flex items-center gap-3 pr-8 border-r border-slate-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#003580] font-bold text-white shadow-md">
-              IA
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-slate-900 leading-none">IAAC</h1>
-              <p className="text-[10px] font-medium text-slate-500 tracking-[0.1em] uppercase">Student Portal</p>
-            </div>
+          <div className="flex items-center pr-8 border-r border-slate-100">
+            <img src={logo} alt="IAAC Logo" className="h-10 w-auto object-contain" />
           </div>
 
           {/* 2. Main Navigation - No Search Bar = More Space */}

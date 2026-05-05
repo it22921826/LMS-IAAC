@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, MapPin, User } from 'lucide-react';
-import { apiGet } from '../api/http.js';
+import { Calendar, Clock, MapPin } from 'lucide-react';
+import { apiGet } from '../../api/http.js';
 
-export default function SchedulePage() {
+export default function LecturerSchedulePage() {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState('');
@@ -19,10 +19,10 @@ export default function SchedulePage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-slate-900">Class Schedule</h2>
+      <h2 className="text-lg font-bold text-slate-900">My Class Schedule</h2>
       {schedules.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
-          No classes scheduled yet. Check back soon.
+          No classes scheduled yet.
         </div>
       ) : (
         <div className="space-y-3">
@@ -33,9 +33,9 @@ export default function SchedulePage() {
                 <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{s.date}</span>
                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{s.startTime} – {s.endTime}</span>
                 <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{s.room}</span>
-                {s.lecturerName && <span className="flex items-center gap-1"><User className="h-3 w-3" />{s.lecturerName}</span>}
               </div>
-              {s.notes && <p className="mt-2 text-xs text-slate-600 italic">{s.notes}</p>}
+              <p className="mt-1 text-[10px] text-slate-400">Batch: {s.batchId}</p>
+              {s.notes && <p className="mt-1 text-xs text-slate-600 italic">{s.notes}</p>}
             </div>
           ))}
         </div>
