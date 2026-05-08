@@ -35,7 +35,7 @@ function toStudentListItem(student) {
 }
 
 function toAdminListItem(admin) {
-  const role = admin?.role ? String(admin.role) : 'superadmin';
+  const role = admin?.role ? String(admin.role) : 'staff';
   return {
     id: String(admin._id),
     name: admin.name,

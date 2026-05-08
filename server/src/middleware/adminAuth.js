@@ -66,6 +66,29 @@ export function requireAdmin(req, res, next) {
     if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
     const decoded = verifyAdminToken(token);
+
+    // Normalize token shape for downstream code.
+    // Many handlers use `req.adminAuth.id` but the JWT uses `sub`.
+    decoded.id = decoded.id || decoded.sub;
+
+    // Security: never treat a missing/empty role as superadmin.
+    // If role is missing (legacy tokens), resolve from DB.
+    if (!decoded.role) {
+      Admin.findById(decoded.sub)
+        .select('role')
+        .lean()
+        .then((admin) => {
+          if (!admin) return res.status(401).json({ message: 'Unauthorized' });
+
+          const role = admin?.role ? String(admin.role) : 'staff';
+          decoded.role = ['superadmin', 'staff', 'lecturer'].includes(role) ? role : 'staff';
+          req.adminAuth = decoded;
+          next();
+        })
+        .catch(() => res.status(401).json({ message: 'Unauthorized' }));
+      return;
+    }
+
     req.adminAuth = decoded;
     return next();
   } catch {
@@ -75,8 +98,8 @@ export function requireAdmin(req, res, next) {
 
 export function getEffectiveAdminRole(adminAuth) {
   const role = adminAuth?.role ? String(adminAuth.role) : '';
-  // Backward-compat: existing tokens/admin docs had no role, treat as superadmin.
-  if (!role) return 'superadmin';
+  // Missing role should never escalate privileges.
+  if (!role) return 'staff';
   return role;
 }
 

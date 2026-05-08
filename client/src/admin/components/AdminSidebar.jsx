@@ -21,7 +21,7 @@ const NAV = [
 
 export default function AdminSidebar({ admin }) {
   const location = useLocation();
-  const role = admin?.role || 'superadmin';
+  const role = admin?.role || 'staff';
   const nav = NAV.filter((item) => !item.superAdminOnly || role === 'superadmin');
 
   const limitedRole = role === 'staff' || role === 'lecturer';
